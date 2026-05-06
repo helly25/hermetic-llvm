@@ -9,7 +9,6 @@ DEFAULT_LLVM_VERSIONS_INDEX_FILE = "//:llvm_versions.json"
 _DEFAULT_SOURCE_PATCHES = [
     "//3rd_party/llvm-project/x.x/patches:llvm-extra.patch",
     "//3rd_party/llvm-project/x.x/patches:clang-prepend-arg-reexec.patch",
-    "//3rd_party/llvm-project/x.x/patches:llvm-sanitizers-ignorelists.patch",
     "//3rd_party/llvm-project/x.x/patches:no_frontend_builtin_headers.patch",
     "//3rd_party/llvm-project/x.x/patches:llvm-bzl-library.patch",
     "//3rd_party/llvm-project/x.x/patches:llvm-cov-multicall.patch",
@@ -19,9 +18,11 @@ _DEFAULT_SOURCE_PATCHES = [
     "//3rd_party/llvm-project/x.x/patches:llvm-dsymutil-corefoundation.patch",
     "//3rd_party/llvm-project/x.x/patches:compiler-rt-symbolizer_skip_cxa_atexit.patch",
     "//3rd_party/llvm-project/x.x/patches:lit_test_stub.patch",
+    "//3rd_party/llvm-project/x.x/patches:pfm-rules-cc-load.patch",
+    "//3rd_party/llvm-project/x.x/patches:llvm-build-file-overlays.patch",
 ]
 
-_LLVM_21_SOURCE_PATCHES = _DEFAULT_SOURCE_PATCHES + [
+_LLVM_21_SOURCE_PATCHES = [
     "//3rd_party/llvm-project/21.x/patches:llvm-link-multicall.patch",
     "//3rd_party/llvm-project/21.x/patches:llvm-bazel9.patch",
     "//3rd_party/llvm-project/21.x/patches:windows_link_and_genrule.patch",
@@ -32,9 +33,9 @@ _LLVM_21_SOURCE_PATCHES = _DEFAULT_SOURCE_PATCHES + [
     "//3rd_party/llvm-project/21.x/patches:llvm-windows-stack-size.patch",
     "//3rd_party/llvm-project/21.x/patches:libcxx-lgamma_r.patch",
     "//3rd_party/llvm-project/21.x/patches:llvm-bazel-blake3-windows-gnu.patch",
-]
+] + _DEFAULT_SOURCE_PATCHES
 
-_LLVM_22_SOURCE_PATCHES = _DEFAULT_SOURCE_PATCHES + [
+_LLVM_22_SOURCE_PATCHES = [
     "//3rd_party/llvm-project/22.x/patches:llvm-link-multicall.patch",
     "//3rd_party/llvm-project/22.x/patches:llvm-profdata-multicall.patch",
     "//3rd_party/llvm-project/22.x/patches:windows_link_and_genrule.patch",
@@ -43,7 +44,7 @@ _LLVM_22_SOURCE_PATCHES = _DEFAULT_SOURCE_PATCHES + [
     "//3rd_party/llvm-project/22.x/patches:llvm-windows-stack-size.patch",
     "//3rd_party/llvm-project/22.x/patches:libcxx-lgamma_r.patch",
     "//3rd_party/llvm-project/22.x/patches:llvm-bazel-blake3-windows-gnu.patch",
-]
+] + _DEFAULT_SOURCE_PATCHES
 
 _LLVM_PATCHES_BY_MAJOR = {
     21: _LLVM_21_SOURCE_PATCHES,
@@ -145,8 +146,6 @@ def _create_llvm_raw_repo(mctx, version_config):
             **structs.to_dict(version_config.source_archive)
         )
 
-    return had_override
-
 def _parse_llvm_major(llvm_version):
     if not llvm_version:
         fail("LLVM version must not be empty")
@@ -196,24 +195,6 @@ def _create_support_archives():
             urls = params.urls,
         )
 
-def _llvm_subproject_repository_impl(rctx):
-    llvm_root = rctx.path(Label("@llvm-raw//:WORKSPACE")).dirname
-    src_dir = llvm_root.get_child(rctx.attr.dir)
-
-    for entry in src_dir.readdir():
-        rctx.symlink(entry, entry.basename)
-
-    rctx.file("BUILD.bazel", rctx.read(rctx.attr.build_file))
-    return rctx.repo_metadata(reproducible = True)
-
-_llvm_subproject_repository = repository_rule(
-    implementation = _llvm_subproject_repository_impl,
-    attrs = {
-        "build_file": attr.label(allow_single_file = True),
-        "dir": attr.string(mandatory = True),
-    },
-)
-
 def _llvm_config_repository_impl(rctx):
     version = rctx.attr.llvm_version
     parts = version.split(".")
@@ -262,30 +243,6 @@ _llvm_config_repository = repository_rule(
     },
 )
 
-def _runtime_build_file(name, label_repo_prefix):
-    return "{repo}//3rd_party/llvm-project/{version}/{name}:{name}.BUILD.bazel".format(
-        repo = label_repo_prefix,
-        name = name,
-        version = "x.x",
-    )
-
-def _create_runtime_repositories(had_override):
-    build_label_repo_prefix = "@llvm" if had_override else ""
-
-    for repo_name, subproject in [
-        ("compiler-rt", "compiler-rt"),
-        ("libcxx", "libcxx"),
-        ("libcxxabi", "libcxxabi"),
-        ("libunwind", "libunwind"),
-        ("llvm-libc", "libc"),
-        ("openmp", "openmp"),
-    ]:
-        _llvm_subproject_repository(
-            name = repo_name,
-            build_file = _runtime_build_file(subproject, build_label_repo_prefix),
-            dir = subproject,
-        )
-
 def _get_llvm_version(mctx):
     module_selected_version = None
 
@@ -323,9 +280,8 @@ def _llvm_source_impl(mctx):
         llvm_version = llvm_version,
     )
 
-    had_override = _create_llvm_raw_repo(mctx, version_config)
+    _create_llvm_raw_repo(mctx, version_config)
     _create_support_archives()
-    _create_runtime_repositories(had_override)
 
     return mctx.extension_metadata(
         reproducible = True,

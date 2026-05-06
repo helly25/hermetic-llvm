@@ -1,0 +1,100 @@
+diff --git a/utils/bazel/configure.bzl b/utils/bazel/configure.bzl
+--- a/utils/bazel/configure.bzl
++++ b/utils/bazel/configure.bzl
+@@ -39,32 +39,68 @@ def _overlay_directories(repository_ctx):
+-    stack = ["."]
++    stack = [struct(
++        materialize = False,
++        path = ".",
++    )]
+     for _ in range(MAX_TRAVERSAL_STEPS):
+-        rel_dir = stack.pop()
++        frame = stack.pop()
++        rel_dir = frame.path
++        rel_prefix = "" if rel_dir == "." else rel_dir + "/"
++        materialize_source_dirs = frame.materialize
+ 
+         # TODO: `set()` is only available in bazel 8.1.
+         # Use `set()` after downstream users are on more recent versions.
+         overlay_dirs = {}
+ 
+         # Symlink overlay files, overlay dirs will be handled in future iterations.
+-        for entry in overlay_root.get_child(rel_dir).readdir():
+-            name = entry.basename
+-            full_rel_path = rel_dir + "/" + name
+-
+-            if entry.is_dir:
+-                stack.append(full_rel_path)
+-                overlay_dirs[name] = None
+-            else:
+-                src_path = overlay_root.get_child(full_rel_path)
+-                dst_path = target_root.get_child(full_rel_path)
+-                repository_ctx.symlink(src_path, dst_path)
++        overlay_dir = overlay_root.get_child(rel_dir)
++        if overlay_dir.exists:
++            for entry in overlay_dir.readdir():
++                name = entry.basename
++                full_rel_path = rel_prefix + name
++
++                if entry.is_dir:
++                    overlay_dirs[name] = materialize_source_dirs
++                else:
++                    src_path = overlay_root.get_child(full_rel_path)
++                    dst_path = target_root.get_child(full_rel_path)
++                    repository_ctx.symlink(src_path, dst_path)
++
++        for dst, label in repository_ctx.attr.files.items():
++            if rel_prefix and not dst.startswith(rel_prefix):
++                continue
++
++            rest = dst[len(rel_prefix):]
++            if not rest:
++                continue
++
++            slash = rest.find("/")
++            if slash < 0:
++                dst_path = target_root.get_child(dst)
++                if dst_path.exists:
++                    repository_ctx.delete(dst_path)
++                repository_ctx.symlink(repository_ctx.path(label), dst_path)
++            else:
++                overlay_dirs[rest[:slash]] = True
+ 
+         # Symlink source dirs (if not themselves overlaid) and files.
+-        for src_entry in src_root.get_child(rel_dir).readdir():
+-            name = src_entry.basename
+-            if name in overlay_dirs.keys():
+-                # Skip: overlay has a directory with this name
+-                continue
+-
+-            repository_ctx.symlink(src_entry, target_root.get_child(rel_dir + "/" + name))
++        for src_entry in src_root.get_child(rel_dir).readdir():
++            name = src_entry.basename
++            full_rel_path = rel_prefix + name
++            dst_path = target_root.get_child(full_rel_path)
++            if name in overlay_dirs.keys() or dst_path.exists:
++                # Skip: overlay has a directory or file with this name
++                continue
++
++            if materialize_source_dirs and src_entry.is_dir:
++                overlay_dirs[name] = True
++                continue
++
++            repository_ctx.symlink(src_entry, dst_path)
++
++        for name, materialize in overlay_dirs.items():
++            stack.append(struct(
++                materialize = materialize,
++                path = rel_prefix + name,
++            ))
+ 
+         if not stack:
+             return
+@@ -199,6 +235,7 @@ llvm_configure = repository_rule(
+     local = True,
+     configure = True,
+     attrs = {
++        "files": attr.string_keyed_label_dict(default = {}),
+         "targets": attr.string_list(default = DEFAULT_TARGETS),
+     },
+ )
