@@ -85,9 +85,9 @@ To use this toolchain with earlier versions of Go, the compiler must be built fr
 ```
 archive_override(
     module_name = "rules_go",
-    integrity = "sha256-8ezQcDyHHp/+xa9NbUJO/3/kDEFFmJaV4pb1fd99m74=",
-    strip_prefix = "rules_go-62d798d48ae153e048a7f9c43ba68cfa1ea10924",
-    url = "https://github.com/bazel-contrib/rules_go/archive/62d798d48ae153e048a7f9c43ba68cfa1ea10924.tar.gz",
+    integrity = "sha256-3dWHUPqnuxvb9/IZw8u/IZNgY6Y6WqCfp0K0GSVwvcA=",
+    strip_prefix = "rules_go-4498ddfda47323c7b0c26ae62888631d6fbc10f4",
+    url = "https://github.com/bazel-contrib/rules_go/archive/4498ddfda47323c7b0c26ae62888631d6fbc10f4.tar.gz",
 )
 
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
