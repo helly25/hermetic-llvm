@@ -1,32 +1,11 @@
-From 63dac778190667b637bc4fd7197e7fcc9e3d0ca7 Mon Sep 17 00:00:00 2001
-From: David Young <davidayoung@meta.com>
-Date: Tue, 2 Jun 2026 11:15:52 -0700
-Subject: [PATCH 4/4] [lldb][bazel] Add Windows support to Initialization, API,
- and lldb driver
-
-Platform-aware changes to get the lldb binary linking on Windows.
-
-Initialization: Moved PluginProcessPOSIX behind select() (non-Windows only)
-and added PluginProcessWindowsCommon for Windows. PluginProcessGDBRemote
-stays for all platforms.
-
-API: Added LLDB_IN_LIBLLDB define on Windows. Without this, LLDB_API expands
-to __declspec(dllimport), causing linker errors when building statically.
-
-API plugin deps: Uses _WINDOWS_PLUGIN_DEPS (filtered list excluding
-GNUstepObjCRuntime and ScriptedProcess) on Windows via select().
-
-lldb binary: Added direct :Host dep on Windows for SetupPythonRuntimeLibrary
-which is not exported from the shared liblldb.
----
- .../llvm-project-overlay/lldb/BUILD.bazel     | 30 ++++++++++++++-----
- 1 file changed, 23 insertions(+), 7 deletions(-)
-
-diff --git a/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel b/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
-index b4f4b0a44af53..34f1a75729758 100644
 --- a/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
 +++ b/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
-@@ -9,7 +9,10 @@ load("@build_bazel_apple_support//rules:apple_genrule.bzl", "apple_genrule")
+@@ -5,11 +5,14 @@
+ load("@bazel_skylib//lib:selects.bzl", "selects")
+ load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+ load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+-load("@build_bazel_apple_support//rules:apple_genrule.bzl", "apple_genrule")
++load("@apple_support//rules:apple_genrule.bzl", "apple_genrule")
  load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library", "objc_library")
  load("@rules_python//python:defs.bzl", "py_binary")
  load("//:vars.bzl", "LLVM_VERSION_MAJOR", "LLVM_VERSION_MINOR", "LLVM_VERSION_PATCH", "LLVM_VERSION_SUFFIX", "PACKAGE_VERSION")
@@ -38,7 +17,7 @@ index b4f4b0a44af53..34f1a75729758 100644
  load("//mlir:build_defs.bzl", "cc_headers_only")
  load("//mlir:tblgen.bzl", "gentbl_cc_library", "td_library")
  
-@@ -242,6 +245,10 @@ cc_library(
+@@ -234,6 +237,10 @@
          "source/API/**/*.h",
      ]),
      hdrs = glob(["include/lldb/API/**/*.h"]) + [":lldb-sbapi-dwarf-enums"],
@@ -49,7 +28,7 @@ index b4f4b0a44af53..34f1a75729758 100644
      includes = ["include"],
      deps = [
          ":Breakpoint",
-@@ -267,10 +274,10 @@ cc_library(
+@@ -259,10 +266,10 @@
          "//llvm:MCJIT",
          "//llvm:Support",
          "//llvm:config",
@@ -63,7 +42,7 @@ index b4f4b0a44af53..34f1a75729758 100644
          "@platforms//os:macos": [
              "//lldb/source/Plugins:PluginProcessMacOSXKernel",
              "//lldb/source/Plugins:PluginSymbolLocatorDebugSymbols",
-@@ -358,9 +365,15 @@ cc_library(
+@@ -351,9 +358,15 @@
          ":Utility",
          ":Version",
          "//lldb/source/Plugins:PluginProcessGDBRemote",
@@ -81,7 +60,7 @@ index b4f4b0a44af53..34f1a75729758 100644
  )
  
  gentbl_cc_library(
-@@ -972,7 +985,10 @@ cc_binary(
+@@ -893,7 +906,10 @@
          ":lldb_options_inc_gen",
          "//llvm:Option",
          "//llvm:Support",

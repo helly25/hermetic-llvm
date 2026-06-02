@@ -1,26 +1,6 @@
-From cbf910442fe7764e5cdfa85481b233c9f75230df Mon Sep 17 00:00:00 2001
-From: David Young <davidayoung@meta.com>
-Date: Tue, 2 Jun 2026 11:13:50 -0700
-Subject: [PATCH 1/4] [lldb][bazel] Add Windows platform support to config
- header
-
-Add @platforms//os:windows branch to the LLDB config header expand_template
-substitutions. Moves HAVE_PTSNAME_R, LLDB_ENABLE_TERMIOS, and LLDB_ENABLE_POSIX
-from the common (all-platform) section into the per-platform select() since
-they differ on Windows (all 0).
-
-Windows values match what cmake produces: no POSIX APIs, no termios, no
-ptsname_r, no libcompression, no process_vm_readv, no ppoll, no libxml2,
-no sys/event.h, no el_rfunc_t.
----
- .../llvm-project-overlay/lldb/BUILD.bazel     | 23 +++++++++++++++----
- 1 file changed, 18 insertions(+), 5 deletions(-)
-
-diff --git a/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel b/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
-index bbc5498a6e9e0..d1d9a16b73815 100644
 --- a/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
 +++ b/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
-@@ -110,9 +110,6 @@ expand_template(
+@@ -110,9 +110,6 @@
      name = "ConfigHeader",
      out = "include/lldb/Host/Config.h",
      substitutions = {
@@ -30,16 +10,16 @@ index bbc5498a6e9e0..d1d9a16b73815 100644
          # TODO: Add LZMA support by including the library in bazel
          "#cmakedefine01 LLDB_ENABLE_LZMA": "#define LLDB_ENABLE_LZMA 0",
  
-@@ -143,8 +140,6 @@ expand_template(
-         # Would cause tests to run with MTE.
-         "#cmakedefine01 LLDB_ENABLE_MTE": "#define LLDB_ENABLE_MTE 0",
+@@ -136,8 +133,6 @@
+         "#cmakedefine01 CURSES_HAVE_NCURSES_CURSES_H": "#define CURSES_HAVE_NCURSES_CURSES_H 0",
+         "#cmakedefine01 LLDB_ENABLE_FBSDVMCORE": "#define LLDB_ENABLE_FBSDVMCORE 0",
  
 -        # Defaults that could be configurable if needed
 -        "#cmakedefine01 LLDB_ENABLE_POSIX": "#define LLDB_ENABLE_POSIX 1",
-         "#cmakedefine01 LLDB_ENABLE_PROTOCOL_SERVERS": "#define LLDB_ENABLE_PROTOCOL_SERVERS 1",
          "#cmakedefine LLDB_GLOBAL_INIT_DIRECTORY R\"(${LLDB_GLOBAL_INIT_DIRECTORY})\"": "#define LLDB_GLOBAL_INIT_DIRECTORY \"\"",
          "${LLDB_INSTALL_LIBDIR_BASENAME}": "lib",
-@@ -155,8 +150,11 @@ expand_template(
+         "${LLDB_BUG_REPORT_URL}": "",
+@@ -147,8 +142,11 @@
              "#cmakedefine01 HAVE_NR_PROCESS_VM_READV": "#define HAVE_NR_PROCESS_VM_READV 0",
              "#cmakedefine01 HAVE_PPOLL": "#define HAVE_PPOLL 0",
              "#cmakedefine01 HAVE_PROCESS_VM_READV": "#define HAVE_PROCESS_VM_READV 0",
@@ -51,7 +31,7 @@ index bbc5498a6e9e0..d1d9a16b73815 100644
              "#cmakedefine01 LLDB_HAVE_EL_RFUNC_T": "#define LLDB_HAVE_EL_RFUNC_T 0",
          },
          "@platforms//os:linux": {
-@@ -164,10 +162,25 @@ expand_template(
+@@ -156,10 +154,25 @@
              "#cmakedefine01 HAVE_NR_PROCESS_VM_READV": "#define HAVE_NR_PROCESS_VM_READV 1",
              "#cmakedefine01 HAVE_PPOLL": "#define HAVE_PPOLL 1",
              "#cmakedefine01 HAVE_PROCESS_VM_READV": "#define HAVE_PROCESS_VM_READV 1",
@@ -77,4 +57,3 @@ index bbc5498a6e9e0..d1d9a16b73815 100644
      }) | select({
          ":curses_enabled": {
              "#cmakedefine01 LLDB_ENABLE_CURSES": "#define LLDB_ENABLE_CURSES 1",
-
