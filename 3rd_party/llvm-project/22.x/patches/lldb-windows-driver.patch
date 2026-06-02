@@ -1,0 +1,95 @@
+From 63dac778190667b637bc4fd7197e7fcc9e3d0ca7 Mon Sep 17 00:00:00 2001
+From: David Young <davidayoung@meta.com>
+Date: Tue, 2 Jun 2026 11:15:52 -0700
+Subject: [PATCH 4/4] [lldb][bazel] Add Windows support to Initialization, API,
+ and lldb driver
+
+Platform-aware changes to get the lldb binary linking on Windows.
+
+Initialization: Moved PluginProcessPOSIX behind select() (non-Windows only)
+and added PluginProcessWindowsCommon for Windows. PluginProcessGDBRemote
+stays for all platforms.
+
+API: Added LLDB_IN_LIBLLDB define on Windows. Without this, LLDB_API expands
+to __declspec(dllimport), causing linker errors when building statically.
+
+API plugin deps: Uses _WINDOWS_PLUGIN_DEPS (filtered list excluding
+GNUstepObjCRuntime and ScriptedProcess) on Windows via select().
+
+lldb binary: Added direct :Host dep on Windows for SetupPythonRuntimeLibrary
+which is not exported from the shared liblldb.
+---
+ .../llvm-project-overlay/lldb/BUILD.bazel     | 30 ++++++++++++++-----
+ 1 file changed, 23 insertions(+), 7 deletions(-)
+
+diff --git a/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel b/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
+index b4f4b0a44af53..34f1a75729758 100644
+--- a/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
++++ b/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
+@@ -9,7 +9,10 @@ load("@build_bazel_apple_support//rules:apple_genrule.bzl", "apple_genrule")
+ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library", "objc_library")
+ load("@rules_python//python:defs.bzl", "py_binary")
+ load("//:vars.bzl", "LLVM_VERSION_MAJOR", "LLVM_VERSION_MINOR", "LLVM_VERSION_PATCH", "LLVM_VERSION_SUFFIX", "PACKAGE_VERSION")
+-load("//lldb/source/Plugins:plugin_config.bzl", "DEFAULT_PLUGINS", "DEFAULT_SCRIPT_PLUGINS", "OBJCPP_COPTS")
++load("//lldb/source/Plugins:plugin_config.bzl", "DEFAULT_PLUGINS", "DEFAULT_SCRIPT_PLUGINS", "OBJCPP_COPTS", "WINDOWS_EXCLUDED_PLUGINS")
++
++_ALL_PLUGIN_DEPS = ["//lldb/source/Plugins:Plugin{}".format(x) for x in DEFAULT_PLUGINS + DEFAULT_SCRIPT_PLUGINS]
++_WINDOWS_PLUGIN_DEPS = ["//lldb/source/Plugins:Plugin{}".format(x) for x in DEFAULT_PLUGINS + DEFAULT_SCRIPT_PLUGINS if x not in WINDOWS_EXCLUDED_PLUGINS]
+ load("//mlir:build_defs.bzl", "cc_headers_only")
+ load("//mlir:tblgen.bzl", "gentbl_cc_library", "td_library")
+ 
+@@ -242,6 +245,10 @@ cc_library(
+         "source/API/**/*.h",
+     ]),
+     hdrs = glob(["include/lldb/API/**/*.h"]) + [":lldb-sbapi-dwarf-enums"],
++    defines = select({
++        "@platforms//os:windows": ["LLDB_IN_LIBLLDB"],
++        "//conditions:default": [],
++    }),
+     includes = ["include"],
+     deps = [
+         ":Breakpoint",
+@@ -267,10 +274,10 @@ cc_library(
+         "//llvm:MCJIT",
+         "//llvm:Support",
+         "//llvm:config",
+-    ] + [
+-        "//lldb/source/Plugins:Plugin{}".format(x)
+-        for x in DEFAULT_PLUGINS + DEFAULT_SCRIPT_PLUGINS
+     ] + select({
++        "@platforms//os:windows": _WINDOWS_PLUGIN_DEPS,
++        "//conditions:default": _ALL_PLUGIN_DEPS,
++    }) + select({
+         "@platforms//os:macos": [
+             "//lldb/source/Plugins:PluginProcessMacOSXKernel",
+             "//lldb/source/Plugins:PluginSymbolLocatorDebugSymbols",
+@@ -358,9 +365,15 @@ cc_library(
+         ":Utility",
+         ":Version",
+         "//lldb/source/Plugins:PluginProcessGDBRemote",
+-        "//lldb/source/Plugins:PluginProcessPOSIX",
+         "//llvm:Support",
+-    ],
++    ] + select({
++        "@platforms//os:windows": [
++            "//lldb/source/Plugins:PluginProcessWindowsCommon",
++        ],
++        "//conditions:default": [
++            "//lldb/source/Plugins:PluginProcessPOSIX",
++        ],
++    }),
+ )
+ 
+ gentbl_cc_library(
+@@ -972,7 +985,10 @@ cc_binary(
+         ":lldb_options_inc_gen",
+         "//llvm:Option",
+         "//llvm:Support",
+-    ],
++    ] + select({
++        "@platforms//os:windows": [":Host"],
++        "//conditions:default": [],
++    }),
+ )
+ 
+ cc_library(

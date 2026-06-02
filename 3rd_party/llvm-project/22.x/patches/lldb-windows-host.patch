@@ -1,0 +1,64 @@
+From ea7aa2597ea49c8ec89b54c43204637dc2740199 Mon Sep 17 00:00:00 2001
+From: David Young <davidayoung@meta.com>
+Date: Tue, 2 Jun 2026 11:14:15 -0700
+Subject: [PATCH 2/4] [lldb][bazel] Add Windows Host sources, headers, and
+ linkopts
+
+Add @platforms//os:windows branches to the Host target.
+
+Sources: Includes source/Host/windows/**/*.cpp and
+source/Host/posix/ConnectionFileDescriptorPosix.cpp (used on all platforms
+despite the name -- cmake compiles it unconditionally).
+
+Headers: Includes include/lldb/Host/windows/*.h, windows/**/*.h (for
+PythonPathSetup subdirectory), and posix/*.h (needed because
+ConnectionFileDescriptor.h unconditionally includes the posix variant).
+
+Linkopts: Adds rpcrt4.lib (UUID), version.lib (GetFileVersionInfo),
+dbghelp.lib (MiniDumpWriteDump), pathcch.lib (PathCch* functions).
+---
+ .../bazel/llvm-project-overlay/lldb/BUILD.bazel  | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel b/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
+index d1d9a16b73815..b4f4b0a44af53 100644
+--- a/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
++++ b/utils/bazel/llvm-project-overlay/lldb/BUILD.bazel
+@@ -575,6 +575,11 @@ cc_library(
+                 "source/Host/posix/**/*.cpp",
+             ],
+         ),
++        "@platforms//os:windows": glob([
++            "source/Host/windows/**/*.cpp",
++        ]) + [
++            "source/Host/posix/ConnectionFileDescriptorPosix.cpp",
++        ],
+     }) + select({
+         ":libedit_enabled": ["source/Host/common/Editline.cpp"],
+         "//conditions:default": [],
+@@ -596,6 +601,11 @@ cc_library(
+             "include/lldb/Host/linux/*.h",
+             "include/lldb/Host/posix/*.h",
+         ]),
++        "@platforms//os:windows": glob([
++            "include/lldb/Host/posix/*.h",
++            "include/lldb/Host/windows/*.h",
++            "include/lldb/Host/windows/**/*.h",
++        ]),
+     }) + select({
+         ":libedit_enabled": ["include/lldb/Host/Editline.h"],
+         "//conditions:default": [],
+@@ -610,6 +620,12 @@ cc_library(
+             "-Wl,-framework,CoreServices",
+             "-Wl,-framework,Security",
+         ],
++        "@platforms//os:windows": [
++            "rpcrt4.lib",
++            "version.lib",
++            "dbghelp.lib",
++            "pathcch.lib",
++        ],
+         "//conditions:default": [],
+     }) + select({
+         ":curses_enabled": [
+
