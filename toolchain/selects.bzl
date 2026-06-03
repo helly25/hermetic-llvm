@@ -45,7 +45,10 @@ def static_library_validator_arg(exec_os, exec_cpu):
 
 def link_wrapper_arg(exec_os, exec_cpu):
     return select({
-        "@llvm//toolchain:macos_complete": [_tool_repo(exec_os, exec_cpu) + ":link_wrapper_args"],
+        "@llvm//toolchain:macos_complete": [
+            _tool_repo(exec_os, exec_cpu) + ":link_wrapper_args",
+            _tool_repo(exec_os, exec_cpu) + ":link_wrapper_ld_path_args",
+        ],
         "//conditions:default": [],
     })
 

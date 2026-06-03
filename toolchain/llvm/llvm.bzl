@@ -220,13 +220,9 @@ def declare_llvm_targets(*, suffix = ""):
         actions = [
             "@rules_cc//cc/toolchains/actions:link_actions",
         ],
-        args = [
-            "--ld-path={ld64_lld}",
-        ],
         data = [
             ":clangxx_file",
             ":dsymutil_file",
-            ":ld64_lld_file",
             ":strip_file",
         ],
         env = {
@@ -237,8 +233,24 @@ def declare_llvm_targets(*, suffix = ""):
         format = {
             "clangxx": ":clangxx_file",
             "dsymutil": ":dsymutil_file",
-            "ld64_lld": ":ld64_lld_file",
             "strip": ":strip_file",
+        },
+        visibility = ["//visibility:public"],
+    )
+
+    cc_args(
+        name = "link_wrapper_ld_path_args",
+        actions = [
+            "@rules_cc//cc/toolchains/actions:link_actions",
+        ],
+        args = [
+            "--ld-path={ld64_lld}",
+        ],
+        data = [
+            ":ld64_lld_file",
+        ],
+        format = {
+            "ld64_lld": ":ld64_lld_file",
         },
         visibility = ["//visibility:public"],
     )

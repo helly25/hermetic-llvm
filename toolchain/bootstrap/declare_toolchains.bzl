@@ -219,13 +219,9 @@ def declare_tool_map(exec_os, exec_cpu):
         actions = [
             "@rules_cc//cc/toolchains/actions:link_actions",
         ],
-        args = [
-            "--ld-path={ld64_lld}",
-        ],
         data = [
             prefix + "/bin/clang++",
             prefix + "/bin/dsymutil",
-            prefix + "/bin/ld64.lld",
             prefix + "/bin/llvm-strip",
         ],
         env = {
@@ -236,8 +232,23 @@ def declare_tool_map(exec_os, exec_cpu):
         format = {
             "clangxx": prefix + "/bin/clang++",
             "dsymutil": prefix + "/bin/dsymutil",
-            "ld64_lld": prefix + "/bin/ld64.lld",
             "strip": prefix + "/bin/llvm-strip",
+        },
+    )
+
+    cc_args(
+        name = prefix + "/link-wrapper-ld-path-args",
+        actions = [
+            "@rules_cc//cc/toolchains/actions:link_actions",
+        ],
+        args = [
+            "--ld-path={ld64_lld}",
+        ],
+        data = [
+            prefix + "/bin/ld64.lld",
+        ],
+        format = {
+            "ld64_lld": prefix + "/bin/ld64.lld",
         },
     )
 
@@ -398,6 +409,7 @@ def declare_toolchains(*, execs = None, targets = SUPPORTED_TARGETS):
             ] + select({
                 "@llvm//toolchain:macos_complete": [
                     ":{}_{}/link-wrapper-args".format(exec_os, exec_cpu),
+                    ":{}_{}/link-wrapper-ld-path-args".format(exec_os, exec_cpu),
                 ],
                 "//conditions:default": [],
             }),
