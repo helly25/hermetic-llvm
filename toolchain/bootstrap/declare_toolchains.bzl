@@ -219,9 +219,13 @@ def declare_tool_map(exec_os, exec_cpu):
         actions = [
             "@rules_cc//cc/toolchains/actions:link_actions",
         ],
+        args = [
+            "--ld-path={ld64_lld}",
+        ],
         data = [
             prefix + "/bin/clang++",
             prefix + "/bin/dsymutil",
+            prefix + "/bin/ld64.lld",
             prefix + "/bin/llvm-strip",
         ],
         env = {
@@ -232,6 +236,7 @@ def declare_tool_map(exec_os, exec_cpu):
         format = {
             "clangxx": prefix + "/bin/clang++",
             "dsymutil": prefix + "/bin/dsymutil",
+            "ld64_lld": prefix + "/bin/ld64.lld",
             "strip": prefix + "/bin/llvm-strip",
         },
     )

@@ -35,6 +35,11 @@ def declare_llvm_targets(*, suffix = ""):
         srcs = ["bin/llvm-strip" + suffix],
     )
 
+    native.filegroup(
+        name = "ld64_lld_file",
+        srcs = ["bin/ld64.lld" + suffix],
+    )
+
     cc_args(
         name = "header_parser_args",
         actions = [
@@ -215,9 +220,13 @@ def declare_llvm_targets(*, suffix = ""):
         actions = [
             "@rules_cc//cc/toolchains/actions:link_actions",
         ],
+        args = [
+            "--ld-path={ld64_lld}",
+        ],
         data = [
             ":clangxx_file",
             ":dsymutil_file",
+            ":ld64_lld_file",
             ":strip_file",
         ],
         env = {
@@ -228,6 +237,7 @@ def declare_llvm_targets(*, suffix = ""):
         format = {
             "clangxx": ":clangxx_file",
             "dsymutil": ":dsymutil_file",
+            "ld64_lld": ":ld64_lld_file",
             "strip": ":strip_file",
         },
         visibility = ["//visibility:public"],
