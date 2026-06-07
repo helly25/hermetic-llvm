@@ -35,6 +35,16 @@ stub_library(
 )
 
 stub_library(
+    name = "gcc",
+    visibility = ["//visibility:public"],
+)
+
+stub_library(
+    name = "gcc_eh",
+    visibility = ["//visibility:public"],
+)
+
+stub_library(
     name = "gcc_s",
     visibility = ["//visibility:public"],
 )
@@ -51,7 +61,11 @@ copy_to_directory(
     srcs = [
         ":unwind",
     ] + select({
-        ":use_llvm_libgcc": [":gcc_s"],
+        ":use_llvm_libgcc": [
+            ":gcc",
+            ":gcc_eh",
+            ":gcc_s",
+        ],
         "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],

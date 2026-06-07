@@ -124,8 +124,8 @@ def config_settings():
 
     # This flag uses llvm-libgcc runtime libraries instead of libunwind directly.
     #
-    # This also makes a dummy gcc_s library available in the libunwind search
-    # directory for third-party link flags such as -lgcc_s.
+    # This also makes dummy gcc, gcc_eh, and gcc_s libraries available in the
+    # libunwind search directory for third-party link flags.
     bool_flag(
         name = "experimental_use_llvm_libgcc",
         build_setting_default = False,
