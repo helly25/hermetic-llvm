@@ -29,6 +29,7 @@ filegroup(
         "@platforms//os:windows": [":static_unwind_runtime_lib"],
         "//conditions:default": [],
     }),
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -38,4 +39,5 @@ filegroup(
         "@platforms//os:windows": [":dynamic_unwind_runtime_lib"],
         "//conditions:default": [],
     }),
+    visibility = ["//visibility:public"],
 )
