@@ -1,0 +1,14 @@
+--- a/clang/include/clang/AST/RecursiveASTVisitor.h
++++ b/clang/include/clang/AST/RecursiveASTVisitor.h
+@@ -153 +153,5 @@
++#ifdef __clang__
++#pragma clang attribute push(__attribute__((minsize)), apply_to = function)
++#endif
++
+ template <typename Derived> class RecursiveASTVisitor {
+@@ -3262 +3266,5 @@
++#ifdef __clang__
++#pragma clang attribute pop
++#endif
++
+ #undef TRY_TO
