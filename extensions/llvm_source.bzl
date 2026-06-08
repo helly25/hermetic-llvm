@@ -22,6 +22,7 @@ _DEFAULT_SOURCE_PATCHES = [
     "//3rd_party/llvm-project/x.x/patches:clangd-dynamic-tweak-visitors.patch",
     "//3rd_party/llvm-project/x.x/patches:asm-matcher-compact-class-tables.patch",
     "//3rd_party/llvm-project/x.x/patches:clang-tidy-compact-check-factories.patch",
+    "//3rd_party/llvm-project/x.x/patches:opttable-info-layout.patch",
     "//3rd_party/llvm-project/x.x/patches:llvm-dsymutil-corefoundation.patch",
     "//3rd_party/llvm-project/x.x/patches:compiler-rt-symbolizer_skip_cxa_atexit.patch",
     "//3rd_party/llvm-project/x.x/patches:lit_test_stub.patch",

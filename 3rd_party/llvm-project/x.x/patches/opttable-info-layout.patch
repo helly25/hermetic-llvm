@@ -1,0 +1,542 @@
+diff --git a/lld/MachO/DriverUtils.cpp b/lld/MachO/DriverUtils.cpp
+index 3ff9d96ed53c..f8264e59f7ac 100644
+--- a/lld/MachO/DriverUtils.cpp
++++ b/lld/MachO/DriverUtils.cpp
+@@ -48,19 +48,19 @@ static constexpr OptTable::Info optInfo[] = {
+                VALUES, SUBCOMMANDIDS_OFFSET)                                   \
+   {PREFIX,                                                                     \
+    NAME,                                                                       \
+-   HELPTEXT,                                                                   \
+-   HELPTEXTSFORVARIANTS,                                                       \
+-   METAVAR,                                                                    \
+    OPT_##ID,                                                                   \
+-   opt::Option::KIND##Class,                                                   \
+-   PARAM,                                                                      \
+    FLAGS,                                                                      \
+    VISIBILITY,                                                                 \
++   SUBCOMMANDIDS_OFFSET,                                                       \
+    OPT_##GROUP,                                                                \
+    OPT_##ALIAS,                                                                \
++   opt::Option::KIND##Class,                                                   \
++   PARAM,                                                                      \
++   HELPTEXTSFORVARIANTS,                                                       \
++   HELPTEXT,                                                                   \
++   METAVAR,                                                                    \
+    ALIASARGS,                                                                  \
+-   VALUES,                                                                     \
+-   SUBCOMMANDIDS_OFFSET},
++   VALUES},
+ #include "Options.inc"
+ #undef OPTION
+ };
+diff --git a/lld/MinGW/Driver.cpp b/lld/MinGW/Driver.cpp
+index 70639573b397..69cd012a6324 100644
+--- a/lld/MinGW/Driver.cpp
++++ b/lld/MinGW/Driver.cpp
+@@ -72,19 +72,19 @@ static constexpr opt::OptTable::Info infoTable[] = {
+                VALUES, SUBCOMMANDIDS_OFFSET)                                   \
+   {PREFIX,                                                                     \
+    NAME,                                                                       \
+-   HELPTEXT,                                                                   \
+-   HELPTEXTSFORVARIANTS,                                                       \
+-   METAVAR,                                                                    \
+    OPT_##ID,                                                                   \
+-   opt::Option::KIND##Class,                                                   \
+-   PARAM,                                                                      \
+    FLAGS,                                                                      \
+    VISIBILITY,                                                                 \
++   SUBCOMMANDIDS_OFFSET,                                                       \
+    OPT_##GROUP,                                                                \
+    OPT_##ALIAS,                                                                \
++   opt::Option::KIND##Class,                                                   \
++   PARAM,                                                                      \
++   HELPTEXTSFORVARIANTS,                                                       \
++   HELPTEXT,                                                                   \
++   METAVAR,                                                                    \
+    ALIASARGS,                                                                  \
+-   VALUES,                                                                     \
+-   SUBCOMMANDIDS_OFFSET},
++   VALUES},
+ #include "Options.inc"
+ #undef OPTION
+ };
+diff --git a/lld/wasm/Driver.cpp b/lld/wasm/Driver.cpp
+index d18126bef766..ffefa8d24570 100644
+--- a/lld/wasm/Driver.cpp
++++ b/lld/wasm/Driver.cpp
+@@ -160,19 +160,19 @@ static constexpr opt::OptTable::Info optInfo[] = {
+                VALUES, SUBCOMMANDIDS_OFFSET)                                   \
+   {PREFIX,                                                                     \
+    NAME,                                                                       \
+-   HELPTEXT,                                                                   \
+-   HELPTEXTSFORVARIANTS,                                                       \
+-   METAVAR,                                                                    \
+    OPT_##ID,                                                                   \
+-   opt::Option::KIND##Class,                                                   \
+-   PARAM,                                                                      \
+    FLAGS,                                                                      \
+    VISIBILITY,                                                                 \
++   SUBCOMMANDIDS_OFFSET,                                                       \
+    OPT_##GROUP,                                                                \
+    OPT_##ALIAS,                                                                \
++   opt::Option::KIND##Class,                                                   \
++   PARAM,                                                                      \
++   HELPTEXTSFORVARIANTS,                                                       \
++   HELPTEXT,                                                                   \
++   METAVAR,                                                                    \
+    ALIASARGS,                                                                  \
+-   VALUES,                                                                     \
+-   SUBCOMMANDIDS_OFFSET},
++   VALUES},
+ #include "Options.inc"
+ #undef OPTION
+ };
+diff --git a/llvm/include/llvm/Option/OptTable.h b/llvm/include/llvm/Option/OptTable.h
+index 45083b31c11f..4dd07bb1a9c1 100644
+--- a/llvm/include/llvm/Option/OptTable.h
++++ b/llvm/include/llvm/Option/OptTable.h
+@@ -60,37 +60,44 @@ public:
+     const char *Usage;
+   };
+ 
++  struct HelpTextVariants {
++    const char *Default;
++    const char *Text;
++    unsigned VisibilityMask;
++  };
++
+   /// Entry for a single option instance in the option data table.
+   struct Info {
+     unsigned PrefixesOffset;
+     StringTable::Offset PrefixedNameOffset;
+-    const char *HelpText;
+-    // Help text for specific visibilities. A list of pairs, where each pair
+-    // is a list of visibilities and a specific help string for those
+-    // visibilities. If no help text is found in this list for the visibility of
+-    // the program, HelpText is used instead. This cannot use std::vector
+-    // because OptTable is used in constexpr contexts. Increase the array sizes
+-    // here if you need more entries and adjust the constants in
+-    // OptionParserEmitter::EmitHelpTextsForVariants.
+-    std::array<std::pair<std::array<unsigned int, 2 /*MaxVisibilityPerHelp*/>,
+-                         const char *>,
+-               1 /*MaxVisibilityHelp*/>
+-        HelpTextsForVariants;
+-    const char *MetaVar;
+     unsigned ID;
+-    unsigned char Kind;
+-    unsigned char Param;
+-    unsigned int Flags;
+-    unsigned int Visibility;
++    unsigned Flags;
++    unsigned Visibility;
++    // Offset into OptTable's SubCommandIDsTable.
++    unsigned SubCommandIDsOffset;
+     unsigned short GroupID;
+     unsigned short AliasID;
++    unsigned char Kind;
++    unsigned char Param;
++    bool HasHelpTextVariants;
++    // Points to a C string unless HasHelpTextVariants is set, in which case it
++    // points to a HelpTextVariants descriptor.
++    const void *HelpText;
++    const char *MetaVar;
+     const char *AliasArgs;
+     const char *Values;
+-    // Offset into OptTable's SubCommandIDsTable.
+-    unsigned SubCommandIDsOffset;
+ 
+     bool hasNoPrefix() const { return PrefixesOffset == 0; }
+ 
++    const char *getHelpText(
++        llvm::opt::Visibility VisibilityMask = llvm::opt::Visibility(0)) const {
++      if (!HasHelpTextVariants)
++        return static_cast<const char *>(HelpText);
++      const auto *Variants = static_cast<const HelpTextVariants *>(HelpText);
++      return Variants->VisibilityMask & VisibilityMask ? Variants->Text
++                                                       : Variants->Default;
++    }
++
+     unsigned getNumPrefixes(ArrayRef<StringTable::Offset> PrefixesTable) const {
+       // We embed the number of prefixes in the value of the first offset.
+       return PrefixesTable[PrefixesOffset].value();
+@@ -143,6 +150,9 @@ public:
+     }
+   };
+ 
++  static_assert(sizeof(void *) != 8 || sizeof(Info) == 64,
++                "unexpected OptTable::Info layout");
++
+ public:
+   bool isValidForSubCommand(const Info *CandidateInfo,
+                             StringRef SubCommand) const {
+@@ -285,12 +295,7 @@ public:
+   // visibility mask, use that text instead of the generic text.
+   const char *getOptionHelpText(OptSpecifier id,
+                                 Visibility VisibilityMask) const {
+-    auto Info = getInfo(id);
+-    for (auto [Visibilities, Text] : Info.HelpTextsForVariants)
+-      for (auto Visibility : Visibilities)
+-        if (VisibilityMask & Visibility)
+-          return Text;
+-    return Info.HelpText;
++    return getInfo(id).getHelpText(VisibilityMask);
+   }
+ 
+   /// Get the meta-variable name to use when describing
+@@ -525,10 +530,10 @@ protected:
+     ALIASARGS, FLAGS, VISIBILITY, PARAM, HELPTEXT, HELPTEXTSFORVARIANTS,       \
+     METAVAR, VALUES, SUBCOMMANDIDS_OFFSET)                                     \
+   llvm::opt::OptTable::Info {                                                  \
+-    PREFIXES_OFFSET, PREFIXED_NAME_OFFSET, HELPTEXT, HELPTEXTSFORVARIANTS,     \
+-        METAVAR, ID_PREFIX##ID, llvm::opt::Option::KIND##Class, PARAM, FLAGS,  \
+-        VISIBILITY, ID_PREFIX##GROUP, ID_PREFIX##ALIAS, ALIASARGS, VALUES,     \
+-        SUBCOMMANDIDS_OFFSET                                                   \
++    PREFIXES_OFFSET, PREFIXED_NAME_OFFSET, ID_PREFIX##ID, FLAGS, VISIBILITY,   \
++        SUBCOMMANDIDS_OFFSET, ID_PREFIX##GROUP, ID_PREFIX##ALIAS,              \
++        llvm::opt::Option::KIND##Class, PARAM, HELPTEXTSFORVARIANTS, HELPTEXT, \
++        METAVAR, ALIASARGS, VALUES                                             \
+   }
+ 
+ #define LLVM_CONSTRUCT_OPT_INFO(                                               \
+diff --git a/llvm/include/llvm/Option/Option.h b/llvm/include/llvm/Option/Option.h
+index 192cb3c96700..3326b0fb640e 100644
+--- a/llvm/include/llvm/Option/Option.h
++++ b/llvm/include/llvm/Option/Option.h
+@@ -144,7 +144,7 @@ public:
+   /// Get the help text for this option.
+   StringRef getHelpText() const {
+     assert(Info && "Must have a valid info!");
+-    return Info->HelpText;
++    return Info->getHelpText();
+   }
+ 
+   /// Get the meta-variable list for this option.
+diff --git a/llvm/lib/Option/OptTable.cpp b/llvm/lib/Option/OptTable.cpp
+index 065036cedc2a..5be7919ea641 100644
+--- a/llvm/lib/Option/OptTable.cpp
++++ b/llvm/lib/Option/OptTable.cpp
+@@ -214,7 +214,8 @@ OptTable::findByPrefix(StringRef Cur, Visibility VisibilityMask,
+   std::vector<std::string> Ret;
+   for (size_t I = FirstSearchableIndex, E = OptionInfos.size(); I < E; I++) {
+     const Info &In = OptionInfos[I];
+-    if (In.hasNoPrefix() || (!In.HelpText && !In.GroupID))
++    const char *HelpText = In.getHelpText(VisibilityMask);
++    if (In.hasNoPrefix() || (!HelpText && !In.GroupID))
+       continue;
+     if (!(In.Visibility & VisibilityMask))
+       continue;
+@@ -225,8 +226,8 @@ OptTable::findByPrefix(StringRef Cur, Visibility VisibilityMask,
+     for (auto PrefixOffset : In.getPrefixOffsets(PrefixesTable)) {
+       StringRef Prefix = (*StrTable)[PrefixOffset];
+       std::string S = (Twine(Prefix) + Name + "\t").str();
+-      if (In.HelpText)
+-        S += In.HelpText;
++      if (HelpText)
++        S += HelpText;
+       if (StringRef(S).starts_with(Cur) && S != std::string(Cur) + "\t")
+         Ret.push_back(S);
+     }
+diff --git a/llvm/test/TableGen/option-parser-help-variants.td b/llvm/test/TableGen/option-parser-help-variants.td
+new file mode 100644
+index 000000000000..c69e4e6ea59f
+--- /dev/null
++++ b/llvm/test/TableGen/option-parser-help-variants.td
+@@ -0,0 +1,29 @@
++// RUN: not llvm-tblgen -gen-opt-parser-defs -I %p/../../include \
++// RUN:   -DTOO_MANY_VARIANTS %s 2>&1 | FileCheck %s --check-prefix=VARIANTS
++// RUN: not llvm-tblgen -gen-opt-parser-defs -I %p/../../include \
++// RUN:   -DTOO_MANY_VISIBILITIES %s 2>&1 | \
++// RUN:   FileCheck %s --check-prefix=VISIBILITIES
++
++include "llvm/Option/OptParser.td"
++
++def V1 : OptionVisibility;
++def V2 : OptionVisibility;
++def V3 : OptionVisibility;
++
++#ifdef TOO_MANY_VARIANTS
++def bad_variants : Flag<["--"], "bad-variants"> {
++  let HelpTextsForVariants = [
++    HelpTextVariant<[V1], "one">,
++    HelpTextVariant<[V2], "two">
++  ];
++}
++
++// VARIANTS: error: at most one HelpTextForVariants entry is supported
++#endif
++
++#ifdef TOO_MANY_VISIBILITIES
++def bad_visibilities : Flag<["--"], "bad-visibilities">,
++  HelpTextForVariants<[V1, V2, V3], "bad help">;
++
++// VISIBILITIES: error: at most two visibilities are supported per HelpTextForVariants entry
++#endif
+diff --git a/llvm/unittests/Option/OptionParsingTest.cpp b/llvm/unittests/Option/OptionParsingTest.cpp
+index 3da015e343eb..7ddf6b2d9518 100644
+--- a/llvm/unittests/Option/OptionParsingTest.cpp
++++ b/llvm/unittests/Option/OptionParsingTest.cpp
+@@ -32,6 +32,11 @@ enum ID {
+ #undef OPTION
+ };
+ 
++enum OptionVisibility {
++  SubtoolVis = (1 << 2),
++  MultiLineVis = (1 << 3),
++};
++
+ #define OPTTABLE_PREFIXES_TABLE_CODE
+ #include "Opts.inc"
+ #undef OPTTABLE_PREFIXES_TABLE_CODE
+@@ -46,11 +51,6 @@ enum OptionFlags {
+   OptFlag3 = (1 << 6)
+ };
+ 
+-enum OptionVisibility {
+-  SubtoolVis = (1 << 2),
+-  MultiLineVis = (1 << 3),
+-};
+-
+ static constexpr OptTable::Info InfoTable[] = {
+ #define OPTION(...) LLVM_CONSTRUCT_OPT_INFO(__VA_ARGS__),
+ #include "Opts.inc"
+@@ -209,6 +209,31 @@ TYPED_TEST(OptTableTest, ParseWithVisibility) {
+   EXPECT_TRUE(AL.hasArg(OPT_R));
+ }
+ 
++TYPED_TEST(OptTableTest, HelpTextForVisibilityVariants) {
++  TypeParam T;
++
++  EXPECT_STREQ("The default variant-help text",
++               T.getOptionHelpText(OPT_variant_help, Visibility(DefaultVis)));
++  EXPECT_STREQ("The subtool variant-help text",
++               T.getOptionHelpText(OPT_variant_help, Visibility(SubtoolVis)));
++  EXPECT_STREQ("The subtool variant-help text",
++               T.getOptionHelpText(OPT_variant_help, Visibility(MultiLineVis)));
++  EXPECT_EQ(StringRef("The default variant-help text"),
++            T.getOption(OPT_variant_help).getHelpText());
++
++  std::vector<std::string> Completions =
++      T.findByPrefix("--variant", Visibility(SubtoolVis), 0);
++  ASSERT_EQ(1u, Completions.size());
++  EXPECT_EQ("--variant-help\tThe subtool variant-help text", Completions[0]);
++
++  std::string Help;
++  raw_string_ostream OS(Help);
++  T.printHelp(OS, "test", "title", /*ShowHidden=*/false,
++              /*ShowAllAliases=*/false, Visibility(SubtoolVis));
++  EXPECT_NE(std::string::npos, Help.find("The subtool variant-help text"));
++  EXPECT_EQ(std::string::npos, Help.find("The default variant-help text"));
++}
++
+ TYPED_TEST(OptTableTest, ParseAliasInGroup) {
+   TypeParam T;
+   unsigned MAI, MAC;
+diff --git a/llvm/unittests/Option/Opts.td b/llvm/unittests/Option/Opts.td
+index 5be67c9decdb..69238a812347 100644
+--- a/llvm/unittests/Option/Opts.td
++++ b/llvm/unittests/Option/Opts.td
+@@ -40,6 +40,11 @@ def Doopf1 : Flag<["-"], "doopf1">, HelpText<"The doopf1 option">, Flags<[OptFla
+ def Doopf2 : Flag<["-"], "doopf2">, HelpText<"The doopf2 option">, Flags<[OptFlag2]>;
+ def Xyzzy1 : Flag<["-"], "xyzzy1">, HelpText<"The xyzzy1 option">, Visibility<[SubtoolVis]>;
+ def Xyzzy2 : Flag<["-"], "xyzzy2">, HelpText<"The xyzzy2 option">, Visibility<[DefaultVis]>;
++def variant_help : Flag<["--"], "variant-help">,
++  HelpText<"The default variant-help text">,
++  HelpTextForVariants<[SubtoolVis, MultiLineVis],
++                      "The subtool variant-help text">,
++  Visibility<[DefaultVis, SubtoolVis]>;
+ def Ermgh : Joined<["--"], "ermgh">, HelpText<"The ermgh option">, MetaVarName<"ERMGH">, Flags<[OptFlag1]>;
+ def Fjormp : Flag<["--"], "fjormp">, HelpText<"The fjormp option">, Flags<[OptFlag1]>;
+ 
+diff --git a/llvm/utils/TableGen/OptionParserEmitter.cpp b/llvm/utils/TableGen/OptionParserEmitter.cpp
+index 45edde3546f6..581fc1850b0a 100644
+--- a/llvm/utils/TableGen/OptionParserEmitter.cpp
++++ b/llvm/utils/TableGen/OptionParserEmitter.cpp
+@@ -13,8 +13,8 @@
+ #include "llvm/ADT/StringExtras.h"
+ #include "llvm/ADT/Twine.h"
+ #include "llvm/Option/OptTable.h"
+-#include "llvm/Support/InterleavedRange.h"
+ #include "llvm/Support/raw_ostream.h"
++#include "llvm/TableGen/Error.h"
+ #include "llvm/TableGen/Record.h"
+ #include "llvm/TableGen/StringToOffsetTable.h"
+ #include "llvm/TableGen/TableGenBackend.h"
+@@ -204,50 +204,68 @@ static MarshallingInfo createMarshallingInfo(const Record &R) {
+   return Ret;
+ }
+ 
+-static void emitHelpTextsForVariants(
+-    raw_ostream &OS, std::vector<std::pair<std::vector<std::string>, StringRef>>
+-                         HelpTextsForVariants) {
+-  // OptTable must be constexpr so it uses std::arrays with these capacities.
++struct HelpTextVariant {
++  std::vector<std::string> Visibilities;
++  StringRef Text;
++};
++
++static std::optional<HelpTextVariant>
++getHelpTextVariant(const Record &R) {
+   const unsigned MaxVisibilityPerHelp = 2;
+   const unsigned MaxVisibilityHelp = 1;
+ 
+-  assert(HelpTextsForVariants.size() <= MaxVisibilityHelp &&
+-         "Too many help text variants to store in "
+-         "OptTable::HelpTextsForVariants");
+-
+-  // This function must initialise any unused elements of those arrays.
+-  for (auto [Visibilities, _] : HelpTextsForVariants)
+-    while (Visibilities.size() < MaxVisibilityPerHelp)
+-      Visibilities.push_back("0");
+-
+-  while (HelpTextsForVariants.size() < MaxVisibilityHelp)
+-    HelpTextsForVariants.push_back(
+-        {std::vector<std::string>(MaxVisibilityPerHelp, "0"), ""});
+-
+-  OS << ", (std::array<std::pair<std::array<unsigned, " << MaxVisibilityPerHelp
+-     << ">, const char*>, " << MaxVisibilityHelp << ">{{ ";
+-
+-  auto VisibilityHelpEnd = HelpTextsForVariants.cend();
+-  for (auto VisibilityHelp = HelpTextsForVariants.cbegin();
+-       VisibilityHelp != VisibilityHelpEnd; ++VisibilityHelp) {
+-    auto [Visibilities, Help] = *VisibilityHelp;
++  std::vector<const Record *> Variants =
++      R.getValueAsListOfDefs("HelpTextsForVariants");
++  if (Variants.size() > MaxVisibilityHelp)
++    PrintFatalError(R.getLoc(),
++                    "at most one HelpTextForVariants entry is supported");
++  if (Variants.empty())
++    return std::nullopt;
++
++  const Record &Variant = *Variants.front();
++  ArrayRef<const Init *> VisibilityInits =
++      Variant.getValueAsListInit("Visibilities")->getElements();
++  if (VisibilityInits.size() > MaxVisibilityPerHelp)
++    PrintFatalError(
++        Variant.getLoc(),
++        "at most two visibilities are supported per HelpTextForVariants entry");
++
++  HelpTextVariant Result;
++  for (const Init *Visibility : VisibilityInits)
++    Result.Visibilities.push_back(Visibility->getAsUnquotedString());
++  Result.Text = Variant.getValueAsString("Text");
++  return Result;
++}
+ 
+-    assert(Visibilities.size() <= MaxVisibilityPerHelp &&
+-           "Too many visibilities to store in an "
+-           "OptTable::HelpTextsForVariants entry");
+-    OS << "{std::array<unsigned, " << MaxVisibilityPerHelp << ">{{"
+-       << llvm::interleaved(Visibilities) << "}}, ";
++struct IndexedHelpTextVariant {
++  const Record *Option;
++  HelpTextVariant Variant;
++};
+ 
+-    if (Help.size())
+-      writeCstring(OS, Help);
++static void emitHelpTextVariants(
++    raw_ostream &OS, ArrayRef<IndexedHelpTextVariant> HelpTextVariants) {
++  if (HelpTextVariants.empty())
++    return;
++
++  OS << "\nstatic constexpr llvm::opt::OptTable::HelpTextVariants "
++        "OptionHelpTextVariants[] = {\n";
++  for (const IndexedHelpTextVariant &Entry : HelpTextVariants) {
++    OS << "  {";
++    if (!isa<UnsetInit>(Entry.Option->getValueInit("HelpText")))
++      writeCstring(OS, Entry.Option->getValueAsString("HelpText"));
+     else
+       OS << "nullptr";
+-    OS << "}";
+-
+-    if (std::next(VisibilityHelp) != VisibilityHelpEnd)
+-      OS << ", ";
++    OS << ", ";
++    writeCstring(OS, Entry.Variant.Text);
++    OS << ", ";
++    llvm::ListSeparator Sep(" | ");
++    for (const std::string &Visibility : Entry.Variant.Visibilities)
++      OS << Sep << Visibility;
++    if (Entry.Variant.Visibilities.empty())
++      OS << "0";
++    OS << "}, // " << getOptionName(*Entry.Option) << "\n";
+   }
+-  OS << " }})";
++  OS << "};\n";
+ }
+ 
+ /// OptionParserEmitter - This tablegen backend takes an input .td file
+@@ -260,6 +278,15 @@ static void emitOptionParser(const RecordKeeper &Records, raw_ostream &OS) {
+   std::vector<const Record *> Opts = Records.getAllDerivedDefinitions("Option");
+   llvm::sort(Opts, IsOptionRecordsLess);
+ 
++  std::map<const Record *, unsigned> HelpTextVariantIndices;
++  std::vector<IndexedHelpTextVariant> HelpTextVariants;
++  for (const Record &R : llvm::make_pointee_range(Opts)) {
++    if (std::optional<HelpTextVariant> Variant = getHelpTextVariant(R)) {
++      HelpTextVariantIndices.try_emplace(&R, HelpTextVariants.size());
++      HelpTextVariants.push_back({&R, std::move(*Variant)});
++    }
++  }
++
+   std::vector<const Record *> SubCommands =
+       Records.getAllDerivedDefinitions("SubCommand");
+ 
+@@ -355,6 +382,7 @@ static void emitOptionParser(const RecordKeeper &Records, raw_ostream &OS) {
+     }
+   }
+   OS << "\n};\n";
++  emitHelpTextVariants(OS, HelpTextVariants);
+   OS << "#endif // OPTTABLE_PREFIXES_TABLE_CODE\n\n";
+ 
+   // Dump subcommand IDs.
+@@ -461,8 +489,8 @@ static void emitOptionParser(const RecordKeeper &Records, raw_ostream &OS) {
+       OS << ", nullptr";
+     }
+ 
+-    // Not using Visibility specific text for group help.
+-    emitHelpTextsForVariants(OS, {});
++    // Groups do not use visibility-specific help text.
++    OS << ", false";
+ 
+     // The option meta-variable name (unused).
+     OS << ", nullptr";
+@@ -560,30 +588,20 @@ static void emitOptionParser(const RecordKeeper &Records, raw_ostream &OS) {
+     // The option parameter field.
+     OS << ", " << R.getValueAsInt("NumArgs");
+ 
+-    // The option help text.
+-    if (!isa<UnsetInit>(R.getValueInit("HelpText"))) {
++    // The option help text. Options with visibility-specific help point to a
++    // sparse descriptor emitted next to the option prefix table.
++    auto HelpTextVariant = HelpTextVariantIndices.find(&R);
++    if (HelpTextVariant != HelpTextVariantIndices.end()) {
++      OS << ",\n       &OptionHelpTextVariants[" << HelpTextVariant->second
++         << "]";
++    } else if (!isa<UnsetInit>(R.getValueInit("HelpText"))) {
+       OS << ",\n";
+       OS << "       ";
+       writeCstring(OS, R.getValueAsString("HelpText"));
+     } else {
+       OS << ", nullptr";
+     }
+-
+-    std::vector<std::pair<std::vector<std::string>, StringRef>>
+-        HelpTextsForVariants;
+-    for (const Record *VisibilityHelp :
+-         R.getValueAsListOfDefs("HelpTextsForVariants")) {
+-      ArrayRef<const Init *> Visibilities =
+-          VisibilityHelp->getValueAsListInit("Visibilities")->getElements();
+-
+-      std::vector<std::string> VisibilityNames;
+-      for (const Init *Visibility : Visibilities)
+-        VisibilityNames.push_back(Visibility->getAsUnquotedString());
+-
+-      HelpTextsForVariants.emplace_back(
+-          VisibilityNames, VisibilityHelp->getValueAsString("Text"));
+-    }
+-    emitHelpTextsForVariants(OS, std::move(HelpTextsForVariants));
++    OS << ", " << (HelpTextVariant != HelpTextVariantIndices.end());
+ 
+     // The option meta-variable name.
+     OS << ", ";
