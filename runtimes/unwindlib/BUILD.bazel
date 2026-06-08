@@ -1,3 +1,6 @@
+load("@bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("//runtimes:defs.bzl", "stub_library")
+
 filegroup(
     name = "static_unwind_runtime_lib",
     srcs = select({
@@ -37,6 +40,38 @@ filegroup(
     srcs = select({
         "@platforms//os:linux": [":dynamic_unwind_runtime_lib"],
         "@platforms//os:windows": [":dynamic_unwind_runtime_lib"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+stub_library(
+    name = "unwind",
+)
+
+stub_library(
+    name = "gcc",
+)
+
+stub_library(
+    name = "gcc_eh",
+)
+
+stub_library(
+    name = "gcc_s",
+)
+
+copy_to_directory(
+    name = "unwindlib_library_search_directory",
+    srcs = [
+        # NOTE(cerisier): Should this be gated ?
+        ":unwind",
+    ] + select({
+        "//config:stub_libgcc_enabled": [
+            ":gcc",
+            ":gcc_eh",
+            ":gcc_s",
+        ],
         "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],

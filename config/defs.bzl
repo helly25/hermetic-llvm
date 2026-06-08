@@ -130,14 +130,47 @@ def config_settings():
     # This is the default because most projects expect to link against libgcc.
     # Under the hood, this is actually compiler-rt.builtins and libunwind disguised as libgcc.
     bool_flag(
-        name = "use_llvm_libgcc",
-        build_setting_default = True,
+        name = "experimental_use_llvm_libgcc",
+        build_setting_default = False,
     )
     native.config_setting(
-        name = "use_llvm_libgcc_enabled",
+        name = "experimental_use_llvm_libgcc_enabled",
         flag_values = {
-            ":use_llvm_libgcc": "True",
+            ":experimental_use_llvm_libgcc": "True",
         },
+    )
+    native.config_setting(
+        name = "experimental_use_llvm_libgcc_disabled",
+        flag_values = {
+            ":experimental_use_llvm_libgcc": "False",
+        },
+    )
+
+    # This flag provides a dummy gcc_s, gcc and gcc_eh library while still linking libunwind as
+    # the unwinder runtime and compiler-rt.builtins as the builtins.
+    #
+    # It is ignored when use_llvm_libgcc is enabled.
+    bool_flag(
+        name = "experimental_stub_libgcc",
+        build_setting_default = True,
+    )
+    # Compat
+    alias(
+        name = "experimental_stub_libgcc_s",
+        actual = ":experimental_stub_libgcc",
+    )
+    native.config_setting(
+        name = "experimental_stub_libgcc_enabled",
+        flag_values = {
+            ":experimental_stub_libgcc": "True",
+        },
+    )
+    selects.config_setting_group(
+        name = "stub_libgcc_enabled",
+        match_any = [
+            ":experimental_use_llvm_libgcc_enabled",
+            ":experimental_stub_libgcc_enabled",
+        ],
     )
 
     for sanitizer in SANITIZERS:
