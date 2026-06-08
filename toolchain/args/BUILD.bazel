@@ -917,7 +917,7 @@ cc_args(
         "-L{unwindlib_library_search_path}",
     ],
     data = [
-        "//runtimes/libunwind:unwindlib_library_search_directory",
+        "//runtimes/unwindlib:unwindlib_library_search_directory",
     ],
     format = {
         "unwindlib_library_search_path": "//runtimes/unwindlib:unwindlib_library_search_directory",
