@@ -1,0 +1,11 @@
+--- a/clang/lib/Frontend/CompilerInvocation.cpp
++++ b/clang/lib/Frontend/CompilerInvocation.cpp
+@@ -255,7 +255,3 @@
+-#define OPTTABLE_STR_TABLE_CODE
+-#include "clang/Options/Options.inc"
+-#undef OPTTABLE_STR_TABLE_CODE
+-
+ static llvm::StringRef lookupStrInTable(unsigned Offset) {
+-  return OptionStrTable[Offset];
++  return getDriverOptTable().getStrTable()[Offset];
+ }
