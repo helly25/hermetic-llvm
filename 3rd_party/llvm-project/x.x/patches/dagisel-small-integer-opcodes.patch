@@ -1,0 +1,166 @@
+diff --git a/llvm/include/llvm/CodeGen/SelectionDAGISel.h b/llvm/include/llvm/CodeGen/SelectionDAGISel.h
+index 1a5430826405..1256dd607268 100644
+--- a/llvm/include/llvm/CodeGen/SelectionDAGISel.h
++++ b/llvm/include/llvm/CodeGen/SelectionDAGISel.h
+@@ -261,6 +261,45 @@ public:
+     OPC_EmitIntegerI16,
+     OPC_EmitIntegerI32,
+     OPC_EmitIntegerI64,
++    // Space-optimized forms that implicitly encode integer VT and values
++    // -1 through 7. Keep these contiguous for inexpensive decoding.
++    OPC_EmitIntegerI8Neg1,
++    OPC_EmitIntegerI8_0,
++    OPC_EmitIntegerI8_1,
++    OPC_EmitIntegerI8_2,
++    OPC_EmitIntegerI8_3,
++    OPC_EmitIntegerI8_4,
++    OPC_EmitIntegerI8_5,
++    OPC_EmitIntegerI8_6,
++    OPC_EmitIntegerI8_7,
++    OPC_EmitIntegerI16Neg1,
++    OPC_EmitIntegerI16_0,
++    OPC_EmitIntegerI16_1,
++    OPC_EmitIntegerI16_2,
++    OPC_EmitIntegerI16_3,
++    OPC_EmitIntegerI16_4,
++    OPC_EmitIntegerI16_5,
++    OPC_EmitIntegerI16_6,
++    OPC_EmitIntegerI16_7,
++    OPC_EmitIntegerI32Neg1,
++    OPC_EmitIntegerI32_0,
++    OPC_EmitIntegerI32_1,
++    OPC_EmitIntegerI32_2,
++    OPC_EmitIntegerI32_3,
++    OPC_EmitIntegerI32_4,
++    OPC_EmitIntegerI32_5,
++    OPC_EmitIntegerI32_6,
++    OPC_EmitIntegerI32_7,
++    OPC_EmitIntegerI64Neg1,
++    OPC_EmitIntegerI64_0,
++    OPC_EmitIntegerI64_1,
++    OPC_EmitIntegerI64_2,
++    OPC_EmitIntegerI64_3,
++    OPC_EmitIntegerI64_4,
++    OPC_EmitIntegerI64_5,
++    OPC_EmitIntegerI64_6,
++    OPC_EmitIntegerI64_7,
++    OPC_EmitIntegerI32_8,
+     OPC_EmitRegister,
+     OPC_EmitRegisterI32,
+     OPC_EmitRegisterI64,
+@@ -319,6 +358,7 @@ public:
+     // Contains 32-bit offset in table for pattern being selected
+     OPC_Coverage
+   };
++  static_assert(OPC_Coverage < 256, "DAGISel opcodes must fit in one byte");
+ 
+   enum {
+     OPFL_None = 0,       // Node has no chain or glue input and isn't variadic.
+diff --git a/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp b/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp
+index e092061fb5e0..af60b7ed1e2b 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp
+@@ -3926,6 +3926,59 @@ void SelectionDAGISel::SelectCodeCommon(SDNode *NodeToMatch,
+           nullptr);
+       continue;
+     }
++    case OPC_EmitIntegerI8Neg1:
++    case OPC_EmitIntegerI8_0:
++    case OPC_EmitIntegerI8_1:
++    case OPC_EmitIntegerI8_2:
++    case OPC_EmitIntegerI8_3:
++    case OPC_EmitIntegerI8_4:
++    case OPC_EmitIntegerI8_5:
++    case OPC_EmitIntegerI8_6:
++    case OPC_EmitIntegerI8_7:
++    case OPC_EmitIntegerI16Neg1:
++    case OPC_EmitIntegerI16_0:
++    case OPC_EmitIntegerI16_1:
++    case OPC_EmitIntegerI16_2:
++    case OPC_EmitIntegerI16_3:
++    case OPC_EmitIntegerI16_4:
++    case OPC_EmitIntegerI16_5:
++    case OPC_EmitIntegerI16_6:
++    case OPC_EmitIntegerI16_7:
++    case OPC_EmitIntegerI32Neg1:
++    case OPC_EmitIntegerI32_0:
++    case OPC_EmitIntegerI32_1:
++    case OPC_EmitIntegerI32_2:
++    case OPC_EmitIntegerI32_3:
++    case OPC_EmitIntegerI32_4:
++    case OPC_EmitIntegerI32_5:
++    case OPC_EmitIntegerI32_6:
++    case OPC_EmitIntegerI32_7:
++    case OPC_EmitIntegerI64Neg1:
++    case OPC_EmitIntegerI64_0:
++    case OPC_EmitIntegerI64_1:
++    case OPC_EmitIntegerI64_2:
++    case OPC_EmitIntegerI64_3:
++    case OPC_EmitIntegerI64_4:
++    case OPC_EmitIntegerI64_5:
++    case OPC_EmitIntegerI64_6:
++    case OPC_EmitIntegerI64_7: {
++      unsigned Encoding = Opcode - OPC_EmitIntegerI8Neg1;
++      static constexpr MVT::SimpleValueType IntegerVTs[] = {
++          MVT::i8, MVT::i16, MVT::i32, MVT::i64};
++      MVT::SimpleValueType VT = IntegerVTs[Encoding / 9];
++      int64_t Val = static_cast<int64_t>(Encoding % 9) - 1;
++      RecordedNodes.emplace_back(
++          CurDAG->getSignedConstant(Val, SDLoc(NodeToMatch), VT,
++                                    /*isTarget=*/true),
++          nullptr);
++      continue;
++    }
++    case OPC_EmitIntegerI32_8:
++      RecordedNodes.emplace_back(
++          CurDAG->getSignedConstant(8, SDLoc(NodeToMatch), MVT::i32,
++                                    /*isTarget=*/true),
++          nullptr);
++      continue;
+     case OPC_EmitRegister:
+     case OPC_EmitRegisterI32:
+     case OPC_EmitRegisterI64: {
+diff --git a/llvm/utils/TableGen/DAGISelMatcherEmitter.cpp b/llvm/utils/TableGen/DAGISelMatcherEmitter.cpp
+index 3d573483afeb..0c9863a9906d 100644
+--- a/llvm/utils/TableGen/DAGISelMatcherEmitter.cpp
++++ b/llvm/utils/TableGen/DAGISelMatcherEmitter.cpp
+@@ -794,6 +794,39 @@ unsigned MatcherTableEmitter::EmitMatcher(const Matcher *N,
+     int64_t Val = IM->getValue();
+     const std::string &Str = IM->getString();
+     MVT VT = IM->getVT();
++    if (VT == MVT::i32 && Val == 8) {
++      OS << "OPC_EmitIntegerI32_8,";
++      if (!OmitComments) {
++        OS << " // #" << IM->getResultNo() << " = ";
++        if (!Str.empty())
++          OS << Str;
++        else
++          OS << Val;
++      }
++      OS << '\n';
++      return 1;
++    }
++
++    if ((VT == MVT::i8 || VT == MVT::i16 || VT == MVT::i32 ||
++         VT == MVT::i64) &&
++        Val >= -1 && Val <= 7) {
++      OS << "OPC_EmitIntegerI" << VT.getSizeInBits();
++      if (Val < 0)
++        OS << "Neg1";
++      else
++        OS << '_' << Val;
++      OS << ',';
++      if (!OmitComments) {
++        OS << " // #" << IM->getResultNo() << " = ";
++        if (!Str.empty())
++          OS << Str;
++        else
++          OS << Val;
++      }
++      OS << '\n';
++      return 1;
++    }
++
+     unsigned TypeBytes = 0;
+     switch (VT.SimpleTy) {
+     case MVT::i8:
