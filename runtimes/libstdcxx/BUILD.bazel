@@ -440,8 +440,11 @@ stub_library(
     name = "supc++",
 )
 
-stub_library(
+copy_file(
     name = "stdc++fs",
+    src = "@gcc//:libstdcxxfs.static",
+    out = "libstdc++fs.a",
+    allow_symlink = True,
 )
 
 copy_to_directory(
@@ -518,6 +521,7 @@ bzl_library(
     deps = [
         ":gcc_config_checks",
         ":linkage.m4",
+        "//3rd_party/gcc:version",
         "//runtimes/libstdcxx/autoconf:checks",
     ],
 )

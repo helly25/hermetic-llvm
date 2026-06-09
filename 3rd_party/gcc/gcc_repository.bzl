@@ -19,6 +19,7 @@ load(
     "libstdcxx_time_members_cc",
 )
 load("@llvm//toolchain/runtimes:cc_runtime_shared_library.bzl", "cc_runtime_stage1_shared_library")
+load("@llvm//toolchain/runtimes:cc_runtime_static_library.bzl", "cc_runtime_stage0_static_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 def gcc_repository(gcc_version):
@@ -1451,6 +1452,11 @@ def gcc_repository(gcc_version):
         copts = LIBSTDCXX_LIBRARY_COPTS + ["-std=gnu++17"],
         implementation_deps = LIBSTDCXX_LIBRARY_DEPS,
         includes = LIBSTDCXX_LIBRARY_INCLUDES,
+    )
+
+    cc_runtime_stage0_static_library(
+        name = "libstdcxxfs.static",
+        deps = [":libstdcxxfs"],
     )
 
     # Header search directory layout mirrors libstdc++-v3/include/Makefile.am:
