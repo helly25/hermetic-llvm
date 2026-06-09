@@ -24,6 +24,7 @@ _DEFAULT_SOURCE_PATCHES = [
     "//3rd_party/llvm-project/x.x/patches:clangd-dynamic-tweak-visitors.patch",
     "//3rd_party/llvm-project/x.x/patches:asm-matcher-compact-class-tables.patch",
     "//3rd_party/llvm-project/x.x/patches:amdgpu-operand-match-sequences.patch",
+    "//3rd_party/llvm-project/x.x/patches:code-emitter-compact-apint-tables.patch",
     "//3rd_party/llvm-project/x.x/patches:x86-disassembler-sparse-row-pooling.patch",
     "//3rd_party/llvm-project/x.x/patches:mcsched-class-layout.patch",
     "//3rd_party/llvm-project/x.x/patches:instr-info-pack-operand-sequences.patch",
