@@ -18,7 +18,10 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_CHECK_C99_TR1` - TR1 C99 probe groups are modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_LFS` - full large-file probe group is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_GETTIMEOFDAY` - `gettimeofday` probe is modeled; `modeled`.
-- [x] `GLIBCXX_ENABLE_LIBSTDCXX_TIME` - Linux time probes are modeled; `modeled`.
+- [x] `GLIBCXX_ENABLE_LIBSTDCXX_TIME` - Linux time probes are modeled; the
+  Win32 `Sleep` fallback is inactive for supported Linux GNU targets and is
+  version-scoped as GCC 12 `HAVE_WIN32_SLEEP` or GCC 13+
+  `_GLIBCXX_USE_WIN32_SLEEP`; `modeled`.
 - [x] `GLIBCXX_CHECK_STDIO_PROTO` - `gets` declaration probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_MATH11_PROTO` - Linux obsolete `isinf`/`isnan` path is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_POLL` - `poll` probe is modeled; `modeled`.
@@ -42,6 +45,8 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GCC_CHECK_TLS` - TLS probe is modeled; `modeled`.
 - [x] `GCC_CHECK_UNWIND_GETIPINFO` - unwind policy is modeled; `modeled`.
 - [x] `GCC_LINUX_FUTEX` - futex probe is modeled; `modeled`.
+- [x] `GCC_HEADER_STDINT` - GCC 12-only `gstdint.h` generator is modeled by a
+  Bazel-generated compatibility header; `modeled`.
 - [x] `GLIBCXX_CHECK_LINKER_FEATURES` - linker/symver policy is modeled for GNU; `modeled`.
 - [x] `GLIBCXX_ENABLE_SYMVERS` - GNU symbol version policy is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_EXCEPTION_PTR_SYMVER` - exception pointer symbol-version policy is modeled; `modeled`.

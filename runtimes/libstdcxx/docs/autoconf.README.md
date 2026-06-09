@@ -60,6 +60,11 @@ atomicity, thread, and header directories from the host triple. Bazel models
 the active Linux GNU result as `target-derived` policy in `target_config.bzl`, the
 generated-header rule files, and `BUILD.bazel`.
 
+GCC 12 calls `GCC_HEADER_STDINT(include/gstdint.h)` to generate a private
+`gstdint.h` header for `src/c++11/compatibility-atomic-c++0x.cc`. That hook has
+no `config.h` output; Bazel models it with a generated compatibility header in
+the GCC overlay for GCC <13.
+
 `GLIBCXX_ENABLE_HOSTED`, `GLIBCXX_ENABLE_LONG_LONG`,
 `GLIBCXX_ENABLE_WCHAR_T`, `GLIBCXX_ENABLE_C99`, `GLIBCXX_CHECK_C99_TR1`,
 `GLIBCXX_CHECK_LFS`, `GLIBCXX_CHECK_GETTIMEOFDAY`, and
@@ -70,7 +75,9 @@ link probe groups. The Linux `SYS_clock_gettime` fallback from
 `GLIBCXX_ENABLE_LIBSTDCXX_TIME` is intentionally left undefined for the current
 hosted Linux GNU matrix, where libc `clock_gettime` is expected. Supporting the
 fallback still requires decision-tree support in the probe model so one
-conditional result can decide which later probe runs.
+conditional result can decide which later probe runs. GCC 12 spells the Win32
+fallback define as `HAVE_WIN32_SLEEP`; GCC 13+ spells it as
+`_GLIBCXX_USE_WIN32_SLEEP`.
 
 TODO: Model autoconf-style fallback decision trees separately from multi-output
 checks. A compile or link probe can emit multiple success defines, matching a

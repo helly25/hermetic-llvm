@@ -12,6 +12,8 @@ Status meanings are defined in `AGENTS.md`.
 
 - [x] `GCC_CHECK_TLS` - native GCC TLS probe, modeled in `gcc_config_checks.bzl`.
 - [x] `GCC_CHECK_UNWIND_GETIPINFO` - GCC unwind policy, modeled for Linux GNU.
+- [x] `GCC_HEADER_STDINT` - GCC 12-only `gstdint.h` generator, modeled by a
+  Bazel-generated compatibility header.
 - [x] `GCC_LINUX_FUTEX` - Linux futex probe, modeled as a link probe.
 - [x] `GLIBCXX_CHECK_ALIGNAS_CACHELINE` - cacheline alignment compile probe.
 - [x] `GLIBCXX_CHECK_ARC4RANDOM` - `arc4random` function probe.
@@ -73,7 +75,10 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_ENABLE_FILESYSTEM_TS` - filesystem source policy.
 - [x] `GLIBCXX_ENABLE_HOSTED` - hosted policy.
 - [x] `GLIBCXX_ENABLE_LIBSTDCXX_DUAL_ABI` - dual ABI policy.
-- [x] `GLIBCXX_ENABLE_LIBSTDCXX_TIME` - time support probes.
+- [x] `GLIBCXX_ENABLE_LIBSTDCXX_TIME` - time support probes. The Win32
+  `Sleep` fallback is classified as inactive for supported Linux GNU targets;
+  GCC 12 names that fallback `HAVE_WIN32_SLEEP`, while GCC 13+ uses
+  `_GLIBCXX_USE_WIN32_SLEEP`.
 - [x] `GLIBCXX_ENABLE_LIBSTDCXX_VISIBILITY` - visibility policy.
 - [x] `GLIBCXX_ENABLE_LONG_LONG` - long long policy.
 - [x] `GLIBCXX_ENABLE_SYMVERS` - symbol version policy.
@@ -162,7 +167,7 @@ that are implemented as compile/link probes.
 - [x] `__cxa_thread_atexit`
 - [x] `__cxa_thread_atexit_impl`
 - [x] `_aligned_malloc`
-- [x] `_wfopen`
+- [x] `_wfopen` - GCC 12+.
 - [x] `aligned_alloc`
 - [x] `arc4random`
 - [x] `at_quick_exit`

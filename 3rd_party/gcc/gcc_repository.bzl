@@ -105,6 +105,23 @@ def gcc_repository(gcc_version):
         "libstdc++-v3/src/c++98/localename.cc",
     ]
 
+    _GCC_LT_13_LIBRARY_HDRS = [
+        ":libstdcxx_gstdint_h",
+    ]
+
+    _GCC_13_STD_HEADERS = [
+        "libstdc++-v3/include/std/format",
+        "libstdc++-v3/include/std/stdfloat",
+    ]
+
+    _GCC_13_CXX20_SOURCES = [
+        "libstdc++-v3/src/c++20/tzdb.cc",
+    ]
+
+    _GCC_13_CXX11_SOURCES = [
+        "libstdc++-v3/src/c++11/ios_errcat.cc",
+    ]
+
     # Keep this export list in sync with the sparse archive roots in
     # 3rd_party/gcc/extension/gcc.bzl. The libstdc++ configure inputs are exported
     # for the audit test; the config/include/libsupc++ entries are the files
@@ -230,7 +247,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/execution",
             "libstdc++-v3/include/std/expected",
             "libstdc++-v3/include/std/filesystem",
-            "libstdc++-v3/include/std/format",
             "libstdc++-v3/include/std/forward_list",
             "libstdc++-v3/include/std/fstream",
             "libstdc++-v3/include/std/functional",
@@ -269,7 +285,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/stack",
             "libstdc++-v3/include/std/stacktrace",
             "libstdc++-v3/include/std/stdexcept",
-            "libstdc++-v3/include/std/stdfloat",
             "libstdc++-v3/include/std/stop_token",
             "libstdc++-v3/include/std/streambuf",
             "libstdc++-v3/include/std/string",
@@ -287,7 +302,7 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/variant",
             "libstdc++-v3/include/std/vector",
             "libstdc++-v3/include/std/version",
-        ] + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
+        ] + (_GCC_13_STD_HEADERS if gcc_version_at_least("13.0.0") else []) + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
     )
 
     native.filegroup(
@@ -782,6 +797,17 @@ def gcc_repository(gcc_version):
         template = "libstdc++-v3/src/c++11/assert_fail.cc",
     )
 
+    write_file(
+        name = "libstdcxx_gstdint_h",
+        out = "libstdcxx_generated/c++11/gstdint.h",
+        content = [
+            "#ifndef GCC_GENERATED_STDINT_H",
+            "#define GCC_GENERATED_STDINT_H 1",
+            "#include <stdint.h>",
+            "#endif",
+        ],
+    )
+
     # C++ standard-version source partitions follow libstdc++-v3/src/Makefile.am
     # plus the matching libstdc++-v3/src/c++*/Makefile.am files.
     native.filegroup(
@@ -878,7 +904,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/src/c++11/hash_c++0x.cc",
             "libstdc++-v3/src/c++11/ios.cc",
             "libstdc++-v3/src/c++11/ios-inst.cc",
-            "libstdc++-v3/src/c++11/ios_errcat.cc",
             "libstdc++-v3/src/c++11/iostream-inst.cc",
             "libstdc++-v3/src/c++11/istream-inst.cc",
             "libstdc++-v3/src/c++11/locale-inst.cc",
@@ -903,7 +928,7 @@ def gcc_repository(gcc_version):
             ":libstdcxx_cxx11_basic_file_cc",
             ":libstdcxx_cxx11_ctype_configure_char_cc",
             ":libstdcxx_cxx11_ctype_members_cc",
-        ] + (_GCC_15_CXX11_SOURCES if gcc_version_at_least("15.0.0") else []),
+        ] + (_GCC_13_CXX11_SOURCES if gcc_version_at_least("13.0.0") else []) + (_GCC_15_CXX11_SOURCES if gcc_version_at_least("15.0.0") else []),
     )
 
     native.filegroup(
@@ -950,8 +975,7 @@ def gcc_repository(gcc_version):
         name = "libstdcxx_cxx20_sources",
         srcs = [
             "libstdc++-v3/src/c++20/sstream-inst.cc",
-            "libstdc++-v3/src/c++20/tzdb.cc",
-        ] + (_GCC_16_CXX20_SOURCES if gcc_version_at_least("16.0.0") else []),
+        ] + (_GCC_13_CXX20_SOURCES if gcc_version_at_least("13.0.0") else []) + (_GCC_16_CXX20_SOURCES if gcc_version_at_least("16.0.0") else []),
     )
 
     native.filegroup(
@@ -1002,7 +1026,7 @@ def gcc_repository(gcc_version):
         ":libstdcxx_cxx17_string_inst_cc",
         ":libsupcxx_headers",
         ":libstdcxx_src_internal_headers",
-    ]
+    ] + (_GCC_LT_13_LIBRARY_HDRS if not gcc_version_at_least("13.0.0") else [])
 
     LIBSTDCXX_LIBRARY_DEPS = LIBSTDCXX_BUILD_HEADER_DEPS
 
