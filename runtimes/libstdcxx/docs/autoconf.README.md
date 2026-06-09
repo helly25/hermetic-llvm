@@ -209,6 +209,9 @@ with explicit build graph structure or user/toolchain options.
 
 `GCC_CHECK_ASSEMBLER_HWCAP` is Solaris-only assembler HWCAP handling.
 `GCC_PROG_GNU_CXXFILT` is needed for Sun/Solaris symbol versioning.
+`GLIBCXX_MAYBE_UNDERSCORED_FUNCS` is a GCC 13 and older fallback for targets
+whose C library exports underscored function names; the supported Linux GNU
+targets use normal names.
 `GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` is the Windows `_get_osfhandle` path.
 `GLIBCXX_CHECK_SYSCTL_HW_NCPU` is the BSD/macOS CPU-count path.
 `GLIBCXX_CROSSCONFIG` covers cross and non-current target branches. These are

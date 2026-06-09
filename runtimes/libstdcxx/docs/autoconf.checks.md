@@ -259,6 +259,7 @@ classification. They are not generic raw inventory entries.
 
 - [x] `GCC_CHECK_ASSEMBLER_HWCAP` - Solaris assembler HWCAP path.
 - [x] `GCC_PROG_GNU_CXXFILT` - Sun/Solaris symbol-version support path.
+- [x] `GLIBCXX_MAYBE_UNDERSCORED_FUNCS` - GCC 13 and older fallback for targets with underscored C symbols.
 - [x] `GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` - Windows native file handle path.
 - [x] `GLIBCXX_CHECK_SYSCTL_HW_NCPU` - BSD/macOS CPU-count path.
 - [x] `GLIBCXX_CROSSCONFIG` - non-current cross branches are inactive.

@@ -89,6 +89,22 @@ def gcc_repository(gcc_version):
         "libstdc++-v3/src/c++11/cow-system_error.cc",
     ]
 
+    _GCC_14_STD_HEADERS = [
+        "libstdc++-v3/include/std/generator",
+        "libstdc++-v3/include/std/print",
+        "libstdc++-v3/include/std/text_encoding",
+    ]
+
+    _GCC_14_CXX11_CHAR8_SOURCES = [
+        "libstdc++-v3/src/c++11/locale_init.cc",
+        "libstdc++-v3/src/c++11/localename.cc",
+    ]
+
+    _GCC_LT_14_CXX11_CHAR8_SOURCES = [
+        "libstdc++-v3/src/c++98/locale_init.cc",
+        "libstdc++-v3/src/c++98/localename.cc",
+    ]
+
     # Keep this export list in sync with the sparse archive roots in
     # 3rd_party/gcc/extension/gcc.bzl. The libstdc++ configure inputs are exported
     # for the audit test; the config/include/libsupc++ entries are the files
@@ -219,7 +235,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/fstream",
             "libstdc++-v3/include/std/functional",
             "libstdc++-v3/include/std/future",
-            "libstdc++-v3/include/std/generator",
             "libstdc++-v3/include/std/iomanip",
             "libstdc++-v3/include/std/ios",
             "libstdc++-v3/include/std/iosfwd",
@@ -238,7 +253,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/numeric",
             "libstdc++-v3/include/std/optional",
             "libstdc++-v3/include/std/ostream",
-            "libstdc++-v3/include/std/print",
             "libstdc++-v3/include/std/queue",
             "libstdc++-v3/include/std/random",
             "libstdc++-v3/include/std/ranges",
@@ -262,7 +276,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/string_view",
             "libstdc++-v3/include/std/syncstream",
             "libstdc++-v3/include/std/system_error",
-            "libstdc++-v3/include/std/text_encoding",
             "libstdc++-v3/include/std/thread",
             "libstdc++-v3/include/std/tuple",
             "libstdc++-v3/include/std/type_traits",
@@ -274,7 +287,7 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/variant",
             "libstdc++-v3/include/std/vector",
             "libstdc++-v3/include/std/version",
-        ] + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
+        ] + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
     )
 
     native.filegroup(
@@ -898,9 +911,7 @@ def gcc_repository(gcc_version):
         srcs = [
             "libstdc++-v3/src/c++11/codecvt.cc",
             "libstdc++-v3/src/c++11/limits.cc",
-            "libstdc++-v3/src/c++11/locale_init.cc",
-            "libstdc++-v3/src/c++11/localename.cc",
-        ],
+        ] + (_GCC_14_CXX11_CHAR8_SOURCES if gcc_version_at_least("14.0.0") else _GCC_LT_14_CXX11_CHAR8_SOURCES),
     )
 
     # These compatibility objects are linked with _GLIBCXX_SHARED for dynamic

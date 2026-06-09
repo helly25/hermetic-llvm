@@ -125,6 +125,7 @@ Status meanings are defined in `AGENTS.md`.
 
 - [x] `GCC_CHECK_ASSEMBLER_HWCAP` - Solaris branch; `unsupported-target`.
 - [x] `GCC_PROG_GNU_CXXFILT` - Sun/Solaris symbol-version branch; `unsupported-target`.
+- [x] `GLIBCXX_MAYBE_UNDERSCORED_FUNCS` - GCC 13 and older underscored C-symbol fallback branch; `unsupported-target`.
 - [x] `GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` - Windows branch; `unsupported-target`.
 - [x] `GLIBCXX_CHECK_SYSCTL_HW_NCPU` - BSD/macOS branch; `unsupported-target`.
 - [x] `GLIBCXX_CROSSCONFIG` - non-current cross branches; `unsupported-target`.
