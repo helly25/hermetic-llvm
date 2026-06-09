@@ -1,4 +1,9 @@
 GCC_VERSIONS = [
+    "11.1.0",
+    "11.2.0",
+    "11.3.0",
+    "11.4.0",
+    "11.5.0",
     "12.1.0",
     "12.2.0",
     "12.3.0",
@@ -16,9 +21,29 @@ GCC_VERSIONS = [
     "16.1.0",
 ]
 
-DEFAULT_GCC_VERSION = "12.5.0"
+DEFAULT_GCC_VERSION = "11.5.0"
 
 GCC_RELEASES = {
+    "11.1.0": {
+        "commit": "50bc9185c2821350f0b785d6e23a6e9dcde58466",
+        "sha256": "b632d97861ca71dd79e762e7e41b255a6bf0725b829c064873ce9013792c6856",
+    },
+    "11.2.0": {
+        "commit": "7ca388565af176bd4efd4f8db1e5e9e11e98ef45",
+        "sha256": "25d3e7e5df3ad89eaa07bb0ca523e0e42438d8f5ccda0bb8d9d4e5cd3688510a",
+    },
+    "11.3.0": {
+        "commit": "2d280e7eafc086e9df85f50ed1a6526d6a3a204d",
+        "sha256": "53b26b1c6bb35162a43e1260450407a39e833f770c8deb5a5a3b55da48687041",
+    },
+    "11.4.0": {
+        "commit": "ff4bf326d03e750a8d4905ea49425fe7d15a04b8",
+        "sha256": "4eb72119b70179379add1897bd3dad6aa24b2d36f683a4bf27e36bbcc785309b",
+    },
+    "11.5.0": {
+        "commit": "5cc4c42a0d4de08715c2eef8715ad5b2e92a23b6",
+        "sha256": "f74980dd3928f79376ca0ac9f53fe98e6509511ea53de8476465bf095d297c5b",
+    },
     "12.1.0": {
         "commit": "1ea978e3066ac565a1ec28a96a4d61eaf38e2726",
         "sha256": "37f4815d27485cd84bfd725598a5afe53714ce4ecdfdef4bc266c086ae165367",
