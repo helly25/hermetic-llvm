@@ -27,6 +27,7 @@ _DEFAULT_SOURCE_PATCHES = [
     "//3rd_party/llvm-project/x.x/patches:code-emitter-compact-apint-tables.patch",
     "//3rd_party/llvm-project/x.x/patches:x86-disassembler-sparse-row-pooling.patch",
     "//3rd_party/llvm-project/x.x/patches:mcsched-class-layout.patch",
+    "//3rd_party/llvm-project/x.x/patches:register-info-subreg-table-blocks.patch",
     "//3rd_party/llvm-project/x.x/patches:instr-info-pack-operand-sequences.patch",
     "//3rd_party/llvm-project/x.x/patches:instr-name-table-compression.patch",
     "//3rd_party/llvm-project/x.x/patches:mcinstrdesc-layout.patch",
