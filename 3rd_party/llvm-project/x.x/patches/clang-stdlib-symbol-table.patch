@@ -1,0 +1,130 @@
+diff --git a/clang/lib/Tooling/Inclusions/Stdlib/StandardLibrary.cpp b/clang/lib/Tooling/Inclusions/Stdlib/StandardLibrary.cpp
+index 807a8d8a34ad..e24b934e0107 100644
+--- a/clang/lib/Tooling/Inclusions/Stdlib/StandardLibrary.cpp
++++ b/clang/lib/Tooling/Inclusions/Stdlib/StandardLibrary.cpp
+@@ -10,10 +10,10 @@
+ #include "clang/AST/Decl.h"
+ #include "clang/Basic/LangOptions.h"
+ #include "llvm/ADT/ArrayRef.h"
+-#include "llvm/ADT/DenseSet.h"
+ #include "llvm/ADT/STLExtras.h"
+ #include "llvm/ADT/StringRef.h"
+ #include "llvm/Support/Casting.h"
++#include "llvm/Support/ErrorHandling.h"
+ #include <optional>
+
+ namespace clang {
+@@ -24,6 +24,12 @@ namespace {
+ // Symbol name -> Symbol::ID, within a namespace.
+ using NSSymbolMap = llvm::DenseMap<llvm::StringRef, unsigned>;
+
++struct SymbolMapping {
++  const char *QName;
++  unsigned NSLen;
++  const char *HeaderName;
++};
++
+ // A Mapping per language.
+ struct SymbolHeaderMapping {
+   llvm::StringRef *HeaderNames = nullptr;
+@@ -54,37 +60,50 @@ static const SymbolHeaderMapping *getMappingPerLang(Lang L) {
+   return LanguageMappings[static_cast<unsigned>(L)];
+ }
+
+-static int countSymbols(Lang Language) {
+-  ArrayRef<const char *> Symbols;
+-#define SYMBOL(Name, NS, Header) #NS #Name,
++static ArrayRef<SymbolMapping> getSymbolMappings(Lang Language) {
++#define SYMBOL(Name, NS, Header)                                               \
++  {#NS #Name,                                                                  \
++   static_cast<decltype(SymbolMapping::NSLen)>(StringRef(#NS).size()),         \
++   #Header},
+   switch (Language) {
+   case Lang::C: {
+-    static constexpr const char *CSymbols[] = {
++    static constexpr SymbolMapping CSymbols[] = {
+ #include "CSpecialSymbolMap.inc"
+ #include "CSymbolMap.inc"
+     };
+-    Symbols = CSymbols;
+-    break;
++    return CSymbols;
+   }
+   case Lang::CXX: {
+-    static constexpr const char *CXXSymbols[] = {
++    static constexpr SymbolMapping CXXSymbols[] = {
+ #include "StdSpecialSymbolMap.inc"
+ #include "StdSymbolMap.inc"
+ #include "StdTsSymbolMap.inc"
+     };
+-    Symbols = CXXSymbols;
+-    break;
++    return CXXSymbols;
+   }
+   }
+ #undef SYMBOL
+-  return llvm::DenseSet<StringRef>(llvm::from_range, Symbols).size();
++  llvm_unreachable("unknown language");
++}
++
++static unsigned countSymbols(ArrayRef<SymbolMapping> Symbols) {
++  unsigned Count = 0;
++  StringRef Previous;
++  for (const SymbolMapping &S : Symbols) {
++    if (Previous != S.QName) {
++      ++Count;
++      Previous = S.QName;
++    }
++  }
++  return Count;
+ }
+
+ static int initialize(Lang Language) {
+   SymbolHeaderMapping *Mapping = new SymbolHeaderMapping();
+   LanguageMappings[static_cast<unsigned>(Language)] = Mapping;
+
+-  unsigned SymCount = countSymbols(Language);
++  ArrayRef<SymbolMapping> Symbols = getSymbolMappings(Language);
++  unsigned SymCount = countSymbols(Symbols);
+   Mapping->SymbolCount = SymCount;
+   Mapping->SymbolNames =
+       new std::remove_reference_t<decltype(*Mapping->SymbolNames)>[SymCount];
+@@ -137,36 +156,8 @@ static int initialize(Lang Language) {
+     NSSymbols.try_emplace(QName.drop_front(NSLen), SymIndex);
+   };
+
+-  struct Symbol {
+-    const char *QName;
+-    unsigned NSLen;
+-    const char *HeaderName;
+-  };
+-#define SYMBOL(Name, NS, Header)                                               \
+-  {#NS #Name, static_cast<decltype(Symbol::NSLen)>(StringRef(#NS).size()),     \
+-   #Header},
+-  switch (Language) {
+-  case Lang::C: {
+-    static constexpr Symbol CSymbols[] = {
+-#include "CSpecialSymbolMap.inc"
+-#include "CSymbolMap.inc"
+-    };
+-    for (const Symbol &S : CSymbols)
+-      Add(S.QName, S.NSLen, S.HeaderName);
+-    break;
+-  }
+-  case Lang::CXX: {
+-    static constexpr Symbol CXXSymbols[] = {
+-#include "StdSpecialSymbolMap.inc"
+-#include "StdSymbolMap.inc"
+-#include "StdTsSymbolMap.inc"
+-    };
+-    for (const Symbol &S : CXXSymbols)
+-      Add(S.QName, S.NSLen, S.HeaderName);
+-    break;
+-  }
+-  }
+-#undef SYMBOL
++  for (const SymbolMapping &S : Symbols)
++    Add(S.QName, S.NSLen, S.HeaderName);
+
+   Mapping->HeaderNames = new llvm::StringRef[Mapping->HeaderIDs->size()];
+   for (const auto &E : *Mapping->HeaderIDs)
