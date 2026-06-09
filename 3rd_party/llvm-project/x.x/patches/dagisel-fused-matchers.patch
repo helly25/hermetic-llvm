@@ -1,0 +1,260 @@
+diff --git a/llvm/include/llvm/CodeGen/SelectionDAGISel.h b/llvm/include/llvm/CodeGen/SelectionDAGISel.h
+index 589021b..b50b515 100644
+--- a/llvm/include/llvm/CodeGen/SelectionDAGISel.h
++++ b/llvm/include/llvm/CodeGen/SelectionDAGISel.h
+@@ -388,6 +388,19 @@ public:
+     OPC_MorphNodeTo1GlueOutput,
+     OPC_MorphNodeTo2GlueOutput,
+     OPC_CompleteMatch,
++    // Space-optimized forms for frequent adjacent matcher operations.
++    OPC_MoveParent_CheckPredicate0,
++    OPC_MoveParent2,
++    OPC_MoveChild0_CheckOpcodeISD_SRL,
++    OPC_MoveParent_RecordChild1,
++    OPC_MoveParent_CheckTypeI32,
++    OPC_MoveParent_RecordChild2,
++    OPC_MoveParent_MoveSibling2,
++    OPC_MoveSibling2_CheckImmAllZerosV,
++    OPC_MoveParent_CheckPredicate1,
++    OPC_MoveSibling1_CheckOpcodeISD_SIGN_EXTEND_INREG,
++    OPC_MoveSibling1_CheckOpcodeISD_INTRINSIC_WO_CHAIN,
++    OPC_MoveChild1_CheckOpcodeISD_ADD,
+     // Contains 32-bit offset in table for pattern being selected
+     OPC_Coverage
+   };
+diff --git a/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp b/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp
+index 7d49e1f..c8b74b1 100644
+--- a/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp
++++ b/llvm/lib/CodeGen/SelectionDAG/SelectionDAGISel.cpp
+@@ -3672,6 +3672,108 @@ void SelectionDAGISel::SelectCodeCommon(SDNode *NodeToMatch,
+       N = NodeStack.back();
+       continue;
+ 
++    case OPC_MoveParent_CheckPredicate0:
++    case OPC_MoveParent_CheckPredicate1: {
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      unsigned PredicateOpcode =
++          Opcode == OPC_MoveParent_CheckPredicate0 ? OPC_CheckPredicate0
++                                                   : OPC_CheckPredicate1;
++      if (!::CheckNodePredicate(PredicateOpcode, MatcherTable, MatcherIndex,
++                                *this, N))
++        break;
++      continue;
++    }
++
++    case OPC_MoveParent2:
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      continue;
++
++    case OPC_MoveChild0_CheckOpcodeISD_SRL:
++    case OPC_MoveChild1_CheckOpcodeISD_ADD: {
++      unsigned ChildNo =
++          Opcode == OPC_MoveChild0_CheckOpcodeISD_SRL ? 0 : 1;
++      if (ChildNo >= N.getNumOperands())
++        break;
++      N = N.getOperand(ChildNo);
++      NodeStack.push_back(N);
++      unsigned CheckOpcode = Opcode == OPC_MoveChild0_CheckOpcodeISD_SRL
++                                 ? OPC_CheckOpcodeISD_SRL
++                                 : OPC_CheckOpcodeISD_ADD;
++      if (!::CheckCompactISDOpcode(CheckOpcode, N.getNode()))
++        break;
++      continue;
++    }
++
++    case OPC_MoveParent_RecordChild1:
++    case OPC_MoveParent_RecordChild2: {
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      unsigned ChildNo = Opcode == OPC_MoveParent_RecordChild1 ? 1 : 2;
++      if (ChildNo >= N.getNumOperands())
++        break;
++      RecordedNodes.emplace_back(N->getOperand(ChildNo), N.getNode());
++      continue;
++    }
++
++    case OPC_MoveParent_CheckTypeI32:
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      if (!::CheckType(MVT::i32, N, TLI, CurDAG->getDataLayout()))
++        break;
++      continue;
++
++    case OPC_MoveParent_MoveSibling2:
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      if (2 >= N.getNumOperands())
++        break;
++      N = N.getOperand(2);
++      NodeStack.push_back(N);
++      continue;
++
++    case OPC_MoveSibling2_CheckImmAllZerosV:
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      if (2 >= N.getNumOperands())
++        break;
++      N = N.getOperand(2);
++      NodeStack.push_back(N);
++      if (!ISD::isConstantSplatVectorAllZeros(N.getNode()))
++        break;
++      continue;
++
++    case OPC_MoveSibling1_CheckOpcodeISD_SIGN_EXTEND_INREG:
++    case OPC_MoveSibling1_CheckOpcodeISD_INTRINSIC_WO_CHAIN: {
++      NodeStack.pop_back();
++      assert(!NodeStack.empty() && "Node stack imbalance!");
++      N = NodeStack.back();
++      if (1 >= N.getNumOperands())
++        break;
++      N = N.getOperand(1);
++      NodeStack.push_back(N);
++      unsigned CheckOpcode =
++          Opcode == OPC_MoveSibling1_CheckOpcodeISD_SIGN_EXTEND_INREG
++              ? OPC_CheckOpcodeISD_SIGN_EXTEND_INREG
++              : OPC_CheckOpcodeISD_INTRINSIC_WO_CHAIN;
++      if (!::CheckCompactISDOpcode(CheckOpcode, N.getNode()))
++        break;
++      continue;
++    }
++
+     case OPC_CheckSame:
+       if (!::CheckSame(MatcherTable, MatcherIndex, N, RecordedNodes)) break;
+       continue;
+diff --git a/llvm/utils/TableGen/DAGISelMatcherEmitter.cpp b/llvm/utils/TableGen/DAGISelMatcherEmitter.cpp
+index 936aa99..29f4510 100644
+--- a/llvm/utils/TableGen/DAGISelMatcherEmitter.cpp
++++ b/llvm/utils/TableGen/DAGISelMatcherEmitter.cpp
+@@ -188,6 +188,70 @@ private:
+   unsigned EmitMatcher(const Matcher *N, const unsigned Indent,
+                        unsigned CurrentIdx, raw_ostream &OS);
+ 
++  StringRef getFusedOpcode(const Matcher *First, const Matcher *Second) {
++    if (isa<MoveParentMatcher>(First)) {
++      if (isa<MoveParentMatcher>(Second))
++        return "OPC_MoveParent2";
++
++      if (const auto *PM = dyn_cast<CheckPredicateMatcher>(Second)) {
++        if (!PM->getPredicate().usesOperands()) {
++          switch (getNodePredicate(PM->getPredicate())) {
++          case 0:
++            return "OPC_MoveParent_CheckPredicate0";
++          case 1:
++            return "OPC_MoveParent_CheckPredicate1";
++          default:
++            break;
++          }
++        }
++      }
++
++      if (const auto *RCM = dyn_cast<RecordChildMatcher>(Second)) {
++        if (RCM->getChildNo() == 1)
++          return "OPC_MoveParent_RecordChild1";
++        if (RCM->getChildNo() == 2)
++          return "OPC_MoveParent_RecordChild2";
++      }
++
++      if (const auto *CTM = dyn_cast<CheckTypeMatcher>(Second)) {
++        if (CTM->getResNo() == 0 && CTM->getType() == MVT::i32)
++          return "OPC_MoveParent_CheckTypeI32";
++      }
++
++      if (const auto *MSM = dyn_cast<MoveSiblingMatcher>(Second))
++        if (MSM->getSiblingNo() == 2)
++          return "OPC_MoveParent_MoveSibling2";
++    }
++
++    if (const auto *MCM = dyn_cast<MoveChildMatcher>(First)) {
++      if (const auto *COM = dyn_cast<CheckOpcodeMatcher>(Second)) {
++        StringRef Opcode = COM->getOpcode().getEnumName();
++        if (MCM->getChildNo() == 0 && Opcode == "ISD::SRL")
++          return "OPC_MoveChild0_CheckOpcodeISD_SRL";
++        if (MCM->getChildNo() == 1 && Opcode == "ISD::ADD")
++          return "OPC_MoveChild1_CheckOpcodeISD_ADD";
++      }
++    }
++
++    if (const auto *MSM = dyn_cast<MoveSiblingMatcher>(First)) {
++      if (MSM->getSiblingNo() == 2 &&
++          isa<CheckImmAllZerosVMatcher>(Second))
++        return "OPC_MoveSibling2_CheckImmAllZerosV";
++
++      if (MSM->getSiblingNo() == 1) {
++        if (const auto *COM = dyn_cast<CheckOpcodeMatcher>(Second)) {
++          StringRef Opcode = COM->getOpcode().getEnumName();
++          if (Opcode == "ISD::SIGN_EXTEND_INREG")
++            return "OPC_MoveSibling1_CheckOpcodeISD_SIGN_EXTEND_INREG";
++          if (Opcode == "ISD::INTRINSIC_WO_CHAIN")
++            return "OPC_MoveSibling1_CheckOpcodeISD_INTRINSIC_WO_CHAIN";
++        }
++      }
++    }
++
++    return {};
++  }
++
+   unsigned getNodePredicate(TreePredicateFn Pred) {
+     // We use the first predicate.
+     TreePattern *PredPat =
+@@ -299,8 +363,18 @@ static std::string getIncludePath(const Record *R) {
+ unsigned MatcherTableEmitter::SizeMatcherList(Matcher *N, raw_ostream &OS) {
+   unsigned Size = 0;
+   while (N) {
++    Matcher *Next = N->getNext();
++    if (Next && !getFusedOpcode(N, Next).empty()) {
++      unsigned PairSize = SizeMatcher(N, OS) + SizeMatcher(Next, OS);
++      assert(PairSize == 2 &&
++             "fused matchers must both have one-byte encodings");
++      (void)PairSize;
++      ++Size;
++      N = Next->getNext();
++      continue;
++    }
+     Size += SizeMatcher(N, OS);
+-    N = N->getNext();
++    N = Next;
+   }
+   return Size;
+ }
+@@ -1186,13 +1260,26 @@ unsigned MatcherTableEmitter::EmitMatcherList(const Matcher *N,
+   while (N) {
+     if (!OmitComments)
+       OS << "/*" << format_decimal(CurrentIdx, IndexWidth) << "*/";
++
++    const Matcher *Next = N->getNext();
++    if (Next) {
++      StringRef FusedOpcode = getFusedOpcode(N, Next);
++      if (!FusedOpcode.empty()) {
++        OS.indent(Indent) << FusedOpcode << ",\n";
++        ++Size;
++        ++CurrentIdx;
++        N = Next->getNext();
++        continue;
++      }
++    }
++
+     unsigned MatcherSize = EmitMatcher(N, Indent, CurrentIdx, OS);
+     Size += MatcherSize;
+     CurrentIdx += MatcherSize;
+ 
+     // If there are other nodes in this list, iterate to them, otherwise we're
+     // done.
+-    N = N->getNext();
++    N = Next;
+   }
+   return Size;
+ }
