@@ -86,7 +86,7 @@ still needs an ordered decision where one result controls which later probe runs
 
 `GLIBCXX_CHECK_STDIO_PROTO`, `GLIBCXX_CHECK_MATH11_PROTO`,
 `GLIBCXX_CHECK_POLL`, `GLIBCXX_CHECK_S_ISREG_OR_S_IFREG`,
-`GLIBCXX_CHECK_WRITEV`, `GLIBCXX_CHECK_UCHAR_H`,
+`GLIBCXX_CHECK_WRITEV`, `GLIBCXX_CHECK_UCHAR_H` with GCC 12+ C8 probes,
 GCC 11 and older `GLIBCXX_CHECK_INT64_T`,
 `GLIBCXX_COMPUTE_STDIO_INTEGER_CONSTANTS`, `GLIBCXX_CHECK_TMPNAM`,
 `GLIBCXX_CHECK_PTHREAD_COND_CLOCKWAIT`,
@@ -111,9 +111,9 @@ section flags, lock-free atomic word support, decimal floating-point support,
 int128 support, and gthreads support. The active Linux GNU behavior is modeled,
 with some answers represented as target policy where GCC's result is
 target-derived. Decimal floating point and GCC 11 int128 support are compile
-probes. Float128 remains deferred. The gthreads availability and
-pthread read/write lock checks compile against the generated `bits/gthr.h`
-overlay so they follow the staged header context used by this Bazel port.
+probes. Float128 remains deferred. The gthreads availability and pthread
+read/write lock checks compile against the generated `bits/gthr.h` overlay so
+they follow the staged header context used by this Bazel port.
 
 `GLIBCXX_CHECK_LINKER_FEATURES`, `GLIBCXX_ENABLE_SYMVERS`,
 `GLIBCXX_CHECK_EXCEPTION_PTR_SYMVER`, `GLIBCXX_DEFAULT_ABI`,
@@ -134,15 +134,16 @@ The Bazel port models the Linux GNU dynamic libstdc++ path.
 groups from `acinclude.m4` and `linkage.m4`. The Bazel port represents these
 as grouped link probes in `linkage.m4.bzl`.
 
-`GLIBCXX_CHECK_DEV_RANDOM`, `GLIBCXX_CHECK_ARC4RANDOM`,
-`GLIBCXX_CHECK_GETENTROPY`, `GLIBCXX_CHECK_FILESYSTEM_DEPS`,
-`GLIBCXX_CHECK_TEXT_ENCODING`, `GLIBCXX_CHECK_DEBUGGING`,
-`GLIBCXX_CHECK_STDIO_LOCKING`, `GLIBCXX_STRUCT_TM_TM_ZONE`,
-`GLIBCXX_ZONEINFO_DIR`, `GLIBCXX_CHECK_ALIGNAS_CACHELINE`,
-`GLIBCXX_CHECK_INIT_PRIORITY`, `GLIBCXX_CHECK_X86_RDRAND`,
+GCC 8 `GLIBCXX_CHECK_RANDOM_TR1`, GCC 9+ `GLIBCXX_CHECK_DEV_RANDOM`, GCC 12+
+`GLIBCXX_CHECK_ARC4RANDOM`, GCC 12+ `GLIBCXX_CHECK_GETENTROPY`,
+`GLIBCXX_CHECK_FILESYSTEM_DEPS`, GCC 14+ `GLIBCXX_CHECK_TEXT_ENCODING`, GCC 16+
+`GLIBCXX_CHECK_DEBUGGING`, GCC 16+ `GLIBCXX_CHECK_STDIO_LOCKING`, GCC 15+
+`GLIBCXX_STRUCT_TM_TM_ZONE`, GCC 13+ `GLIBCXX_ZONEINFO_DIR`, GCC 13+
+`GLIBCXX_CHECK_ALIGNAS_CACHELINE`, GCC 13+ `GLIBCXX_CHECK_INIT_PRIORITY`,
+GCC 8 `GLIBCXX_CHECK_SYSTEM_ERROR`, `GLIBCXX_CHECK_X86_RDRAND`,
 `GLIBCXX_CHECK_X86_RDSEED`, and `GLIBCXX_CHECK_SIZE_T_MANGLING` cover runtime
 library details after the core libc checks. The active Linux GNU behavior is
-modeled as probes or policy. `GLIBCXX_CHECK_DEV_RANDOM` is policy-modeled
+modeled as probes or policy. The random-device checks are policy-modeled
 rather than probed because GCC's native check reads the execution host's
 `/dev/random` and `/dev/urandom`, while the supported Bazel target decision is
 Linux GNU and GCC's cross configuration hardcodes that answer for Linux-family
@@ -160,15 +161,15 @@ reference-count ABI even when compare-and-swap builtins exist.
 
 ## Deferred Knobs
 
-`GLIBCXX_ENABLE_VERBOSE`, `GLIBCXX_ENABLE_CONCEPT_CHECKS`,
+`GLIBCXX_ENABLE_VERBOSE`, `GLIBCXX_ENABLE_CONCEPT_CHECKS`, GCC 12+
 `GLIBCXX_ENABLE_FLOAT128`, `GLIBCXX_ENABLE_FULLY_DYNAMIC_STRING`,
 `GLIBCXX_ENABLE_CSTDIO`'s `stdio_pure` mode, `GLIBCXX_ENABLE_ALLOCATOR`'s
-`malloc` mode, NLS, and `GLIBCXX_EMERGENCY_EH_ALLOC` are currently fixed or
-disabled policies. They should become explicit private Bazel settings only if
-the port exposes the corresponding GCC variant. `GLIBCXX_ENABLE_DECIMAL_FLOAT`
-is already represented by a compile probe and is not a deferred knob. Float128
-remains fixed disabled until the probe result and `float128.ver` version-script
-input can be modeled together.
+`malloc` mode, NLS, and GCC 13+ `GLIBCXX_EMERGENCY_EH_ALLOC` are currently
+fixed or disabled policies. They should become explicit private Bazel settings
+only if the port exposes the corresponding GCC variant.
+`GLIBCXX_ENABLE_DECIMAL_FLOAT` is already represented by a compile probe and is
+not a deferred knob. Float128 remains fixed disabled until the probe result and
+`float128.ver` version-script input can be modeled together.
 
 ## Audited Policy And Defaults
 
@@ -181,9 +182,11 @@ are intentionally left undefined because the supported CPU/version-script
 policy does not enable GCC's long-double compatibility port files. The
 `SYS_clock_gettime` and Win32 sleep fallback defines are left undefined for the
 supported Linux GNU path, where libc `clock_gettime`, `nanosleep`, and
-`sched_yield` probes are expected to decide the active time support. The stdio
-integer constants are policy-modeled to glibc values; this remains acceptable
-only while non-GNU libc support is out of scope.
+`sched_yield` probes are expected to decide the active time support. GCC 12
+spells the Win32 fallback define as `HAVE_WIN32_SLEEP`; GCC 13+ spells it as
+`_GLIBCXX_USE_WIN32_SLEEP`. The stdio integer constants are policy-modeled to
+glibc values; this remains acceptable only while non-GNU libc support is out of
+scope.
 
 ## High-Risk Probe Audit
 
@@ -219,10 +222,11 @@ with explicit build graph structure or user/toolchain options.
 
 `GCC_CHECK_ASSEMBLER_HWCAP` is Solaris-only assembler HWCAP handling.
 `GCC_PROG_GNU_CXXFILT` is needed for Sun/Solaris symbol versioning.
+GCC 14+ `GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` is the Windows `_get_osfhandle`
+path.
 `GLIBCXX_MAYBE_UNDERSCORED_FUNCS` is a GCC 13 and older fallback for targets
 whose C library exports underscored function names; the supported Linux GNU
 targets use normal names.
-`GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` is the Windows `_get_osfhandle` path.
 `GLIBCXX_CHECK_SYSCTL_HW_NCPU` is the BSD/macOS CPU-count path.
 `GLIBCXX_CROSSCONFIG` covers cross and non-current target branches. These are
 classified `unsupported-target`.
@@ -230,8 +234,8 @@ classified `unsupported-target`.
 ## Inactive Feature Branches
 
 `GCC_CET_FLAGS` is not modeled as a target-library flag policy yet.
-`GLIBCXX_ENABLE_BACKTRACE` is inactive because libbacktrace and `<stacktrace>`
-are not built. `GLIBCXX_ENABLE_DEBUG`, `GLIBCXX_ENABLE_DEBUG_FLAGS`,
+GCC 12+ `GLIBCXX_ENABLE_BACKTRACE` is inactive because libbacktrace and
+`<stacktrace>` are not built. `GLIBCXX_ENABLE_DEBUG`, `GLIBCXX_ENABLE_DEBUG_FLAGS`,
 `GLIBCXX_ENABLE_PARALLEL`, and `GLIBCXX_ENABLE_VTABLE_VERIFY` are optional
 runtime-library feature families not built by this port today.
 

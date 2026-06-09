@@ -27,7 +27,8 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_CHECK_POLL` - `poll` probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_S_ISREG_OR_S_IFREG` - regular-file macro probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_WRITEV` - `writev` probe is modeled; `modeled`.
-- [x] `GLIBCXX_CHECK_UCHAR_H` - C11/C++20 uchar probes are modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_UCHAR_H` - C11 uchar probes are modeled; GCC 12+
+  adds C8 uchar probes; `modeled`.
 - [x] `GLIBCXX_CHECK_INT64_T` - GCC 11 and older `int64_t`
   typedef-shape probes are modeled; `modeled`.
 - [x] `GLIBCXX_COMPUTE_STDIO_INTEGER_CONSTANTS` - Linux GNU constants are policy-modeled; `modeled`.
@@ -57,16 +58,17 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_CHECK_MATH_SUPPORT` - native math probes are modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_STDLIB_SUPPORT` - native stdlib probes are modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_DEV_RANDOM` - Linux random-device policy is modeled; `modeled`.
-- [x] `GLIBCXX_CHECK_ARC4RANDOM` - `arc4random` probe is modeled; `modeled`.
-- [x] `GLIBCXX_CHECK_GETENTROPY` - `getentropy` probe is modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_RANDOM_TR1` - GCC 8 TR1 random-device policy is modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_ARC4RANDOM` - GCC 12+ `arc4random` probe is modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_GETENTROPY` - GCC 12+ `getentropy` probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_FILESYSTEM_DEPS` - filesystem probes are modeled; `modeled`.
-- [x] `GLIBCXX_CHECK_TEXT_ENCODING` - text encoding probes are modeled; `modeled`.
-- [x] `GLIBCXX_CHECK_DEBUGGING` - Linux debug probes are modeled; `modeled`.
-- [x] `GLIBCXX_CHECK_STDIO_LOCKING` - stdio locking probe is modeled; `modeled`.
-- [x] `GLIBCXX_STRUCT_TM_TM_ZONE` - `tm_zone` probe is modeled; `modeled`.
-- [x] `GLIBCXX_ZONEINFO_DIR` - zoneinfo policy is modeled; `modeled`.
-- [x] `GLIBCXX_CHECK_ALIGNAS_CACHELINE` - cacheline alignment probe is modeled; `modeled`.
-- [x] `GLIBCXX_CHECK_INIT_PRIORITY` - init-priority probe is modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_TEXT_ENCODING` - GCC 14+ text encoding probes are modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_DEBUGGING` - GCC 16+ Linux debug probes are modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_STDIO_LOCKING` - GCC 16+ stdio locking probe is modeled; `modeled`.
+- [x] `GLIBCXX_STRUCT_TM_TM_ZONE` - GCC 15+ `tm_zone` probe is modeled; `modeled`.
+- [x] `GLIBCXX_ZONEINFO_DIR` - GCC 13+ zoneinfo policy is modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_ALIGNAS_CACHELINE` - GCC 13+ cacheline alignment probe is modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_INIT_PRIORITY` - GCC 13+ init-priority probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_X86_RDRAND` - x86 RDRAND probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_X86_RDSEED` - x86 RDSEED probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_SIZE_T_MANGLING` - size_t mangling policy is modeled; `modeled`.
@@ -98,14 +100,15 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1` - represented by stdlib support probes; `modeled`.
 - [x] `GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2` - represented by stdlib support probes; `modeled`.
 - [x] `GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_3` - represented by stdlib support probes; `modeled`.
+- [x] `GLIBCXX_CHECK_SYSTEM_ERROR` - GCC 8 Linux errno availability is modeled; `modeled`.
 
 ## Build Setting Later
 
 - [x] `GLIBCXX_ENABLE_VERBOSE` - fixed today; should become a private knob.
 - [x] `GLIBCXX_ENABLE_CONCEPT_CHECKS` - fixed today; should become a private knob if exposed.
-- [x] `GLIBCXX_ENABLE_FLOAT128` - fixed today; needs target/probe knob and version-map work.
+- [x] `GLIBCXX_ENABLE_FLOAT128` - GCC 12+ fixed policy today; needs target/probe knob and version-map work.
 - [x] `GLIBCXX_ENABLE_FULLY_DYNAMIC_STRING` - fixed today; needs ABI knob work.
-- [x] `GLIBCXX_EMERGENCY_EH_ALLOC` - fixed today; needs EH pool knobs.
+- [x] `GLIBCXX_EMERGENCY_EH_ALLOC` - GCC 13+ setting is fixed today; needs EH pool knobs.
 - [x] `nls` / `_GLIBCXX_USE_NLS` - fixed off; needs NLS catalog build policy if exposed.
 - [x] `stdio_pure` / `_GLIBCXX_USE_STDIO_PURE` - fixed off; needs a C stdio variant knob if exposed.
 - [x] `malloc` allocator mode - fixed to the normal allocator; needs an allocator variant knob if exposed.
@@ -134,15 +137,15 @@ Status meanings are defined in `AGENTS.md`.
 
 - [x] `GCC_CHECK_ASSEMBLER_HWCAP` - Solaris branch; `unsupported-target`.
 - [x] `GCC_PROG_GNU_CXXFILT` - Sun/Solaris symbol-version branch; `unsupported-target`.
+- [x] `GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` - GCC 14+ Windows branch; `unsupported-target`.
 - [x] `GLIBCXX_MAYBE_UNDERSCORED_FUNCS` - GCC 13 and older underscored C-symbol fallback branch; `unsupported-target`.
-- [x] `GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` - Windows branch; `unsupported-target`.
 - [x] `GLIBCXX_CHECK_SYSCTL_HW_NCPU` - BSD/macOS branch; `unsupported-target`.
 - [x] `GLIBCXX_CROSSCONFIG` - non-current cross branches; `unsupported-target`.
 
 ## Inactive Feature Branches
 
 - [x] `GCC_CET_FLAGS` - CET flags not modeled; `unsupported-feature`.
-- [x] `GLIBCXX_ENABLE_BACKTRACE` - libbacktrace and `<stacktrace>` not built; `unsupported-feature`.
+- [x] `GLIBCXX_ENABLE_BACKTRACE` - GCC 12+ libbacktrace and `<stacktrace>` not built; `unsupported-feature`.
 - [x] `GLIBCXX_ENABLE_DEBUG` - debug library variant not built; `unsupported-feature`.
 - [x] `GLIBCXX_ENABLE_DEBUG_FLAGS` - debug library flags not exposed; `unsupported-feature`.
 - [x] `GLIBCXX_ENABLE_PARALLEL` - parallel mode/libgomp integration not built; `unsupported-feature`.

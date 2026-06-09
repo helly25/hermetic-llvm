@@ -15,21 +15,21 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GCC_HEADER_STDINT` - GCC 12-only `gstdint.h` generator, modeled by a
   Bazel-generated compatibility header.
 - [x] `GCC_LINUX_FUTEX` - Linux futex probe, modeled as a link probe.
-- [x] `GLIBCXX_CHECK_ALIGNAS_CACHELINE` - cacheline alignment compile probe.
-- [x] `GLIBCXX_CHECK_ARC4RANDOM` - `arc4random` function probe.
+- [x] `GLIBCXX_CHECK_ALIGNAS_CACHELINE` - GCC 13+ cacheline alignment compile probe.
+- [x] `GLIBCXX_CHECK_ARC4RANDOM` - GCC 12+ `arc4random` function probe.
 - [x] `GLIBCXX_CHECK_C99_TR1` - TR1 C99 support probes.
 - [x] `GLIBCXX_CHECK_COMPILER_FEATURES` - compiler feature policy/probe group.
 - [x] `GLIBCXX_CHECK_DEBUGGING` - debug support checks.
 - [x] `GLIBCXX_CHECK_DEV_RANDOM` - Linux random-device policy.
 - [x] `GLIBCXX_CHECK_EXCEPTION_PTR_SYMVER` - exception pointer symbol-version policy.
 - [x] `GLIBCXX_CHECK_FILESYSTEM_DEPS` - filesystem dependency probes.
-- [x] `GLIBCXX_CHECK_GETENTROPY` - `getentropy` function probe.
+- [x] `GLIBCXX_CHECK_GETENTROPY` - GCC 12+ `getentropy` function probe.
 - [x] `GLIBCXX_CHECK_GETTIMEOFDAY` - `gettimeofday` probe.
 - [x] `GLIBCXX_CHECK_GET_NPROCS` - GNU `get_nprocs` probe.
 - [x] `GLIBCXX_CHECK_GTHREADS` - gthreads capability checks.
 - [x] `GLIBCXX_CHECK_INT64_T` - GCC 11 and older `int64_t` availability and
   typedef-shape probes for `streamoff`.
-- [x] `GLIBCXX_CHECK_INIT_PRIORITY` - init-priority attribute probe.
+- [x] `GLIBCXX_CHECK_INIT_PRIORITY` - GCC 13+ init-priority attribute probe.
 - [x] `GLIBCXX_CHECK_LFS` - large-file support probe group.
 - [x] `GLIBCXX_CHECK_LINKER_FEATURES` - linker/symver capability policy.
 - [x] `GLIBCXX_CHECK_MATH_DECL` - math declaration helper, represented by math support probes.
@@ -48,20 +48,23 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_CHECK_PTHREAD_COND_CLOCKWAIT` - pthread cond clockwait probe.
 - [x] `GLIBCXX_CHECK_PTHREAD_MUTEX_CLOCKLOCK` - pthread mutex clocklock probe.
 - [x] `GLIBCXX_CHECK_PTHREAD_RWLOCK_CLOCKLOCK` - pthread rwlock clocklock probe.
+- [x] `GLIBCXX_CHECK_RANDOM_TR1` - GCC 8 TR1 random-device policy.
 - [x] `GLIBCXX_CHECK_SC_NPROCESSORS_ONLN` - `sysconf` processor-count probe.
 - [x] `GLIBCXX_CHECK_SC_NPROC_ONLN` - `sysconf` processor-count probe.
 - [x] `GLIBCXX_CHECK_SDT_H` - systemtap header probe.
 - [x] `GLIBCXX_CHECK_SIZE_T_MANGLING` - `size_t` ABI mangling policy.
-- [x] `GLIBCXX_CHECK_STDIO_LOCKING` - stdio locking probe.
+- [x] `GLIBCXX_CHECK_STDIO_LOCKING` - GCC 16+ stdio locking probe.
 - [x] `GLIBCXX_CHECK_STDIO_PROTO` - `gets` declaration probe.
 - [x] `GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_1` - `linkage.m4` stdlib helper.
 - [x] `GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_2` - `linkage.m4` stdlib helper.
 - [x] `GLIBCXX_CHECK_STDLIB_DECL_AND_LINKAGE_3` - stdlib helper represented by stdlib support probes.
 - [x] `GLIBCXX_CHECK_STDLIB_SUPPORT` - native stdlib support probe group.
+- [x] `GLIBCXX_CHECK_SYSTEM_ERROR` - GCC 8 Linux errno availability policy.
 - [x] `GLIBCXX_CHECK_S_ISREG_OR_S_IFREG` - `S_ISREG`/`S_IFREG` probe.
-- [x] `GLIBCXX_CHECK_TEXT_ENCODING` - text encoding support probes.
+- [x] `GLIBCXX_CHECK_TEXT_ENCODING` - GCC 14+ text encoding support probes.
 - [x] `GLIBCXX_CHECK_TMPNAM` - `tmpnam` probe.
-- [x] `GLIBCXX_CHECK_UCHAR_H` - `uchar.h` support probes.
+- [x] `GLIBCXX_CHECK_UCHAR_H` - `uchar.h` support probes; GCC 12+ adds
+  the C8 `c8rtomb`/`mbrtoc8` probes.
 - [x] `GLIBCXX_CHECK_WRITEV` - `writev` probe.
 - [x] `GLIBCXX_CHECK_X86_RDRAND` - x86 RDRAND assembler/builtin probe.
 - [x] `GLIBCXX_CHECK_X86_RDSEED` - x86 RDSEED assembler/builtin probe.
@@ -87,8 +90,8 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_ENABLE_LONG_LONG` - long long policy.
 - [x] `GLIBCXX_ENABLE_SYMVERS` - symbol version policy.
 - [x] `GLIBCXX_ENABLE_WCHAR_T` - wide character probes.
-- [x] `GLIBCXX_STRUCT_TM_TM_ZONE` - `struct tm::tm_zone` probe.
-- [x] `GLIBCXX_ZONEINFO_DIR` - zoneinfo policy.
+- [x] `GLIBCXX_STRUCT_TM_TM_ZONE` - GCC 15+ `struct tm::tm_zone` probe.
+- [x] `GLIBCXX_ZONEINFO_DIR` - GCC 13+ zoneinfo policy.
 
 ## Concrete Header Checks
 
@@ -160,7 +163,7 @@ implemented as `ac_check_headers(...)` entries in `configure.ac.bzl`.
 - [x] `F_GETFL`, `F_SETFL`, and `O_NONBLOCK` - modeled as the combined
   `HAVE_O_NONBLOCK` networking declaration probe used by
   `libstdc++-v3/configure.ac`.
-- [x] `strnlen` - modeled as `HAVE_DECL_STRNLEN`.
+- [x] `strnlen` - GCC 12+; modeled as `HAVE_DECL_STRNLEN`.
 - [x] `pthread_rwlock_t` - modeled as `_GLIBCXX_USE_PTHREAD_RWLOCK_T`.
 
 ## Concrete Function Checks
@@ -181,13 +184,13 @@ that are implemented as compile/link probes.
 - [x] `poll`
 - [x] `posix_memalign`
 - [x] `quick_exit`
-- [x] `secure_getenv`
+- [x] `secure_getenv` - GCC 11+.
 - [x] `setenv`
 - [x] `sleep`
-- [x] `sockatmark`
+- [x] `sockatmark` - GCC 9+.
 - [x] `strtof`
 - [x] `strtold`
-- [x] `timespec_get`
+- [x] `timespec_get` - GCC 9+.
 - [x] `tmpnam`
 - [x] `uselocale`
 - [x] `usleep`
@@ -234,9 +237,10 @@ classification. They are not generic raw inventory entries.
 
 ## Build Setting Later
 
-- [x] `GLIBCXX_EMERGENCY_EH_ALLOC` - needs private EH pool knobs.
+- [x] `GLIBCXX_EMERGENCY_EH_ALLOC` - GCC 13+ setting; needs private EH pool knobs.
 - [x] `GLIBCXX_ENABLE_CONCEPT_CHECKS` - needs a private feature knob if exposed.
-- [x] `GLIBCXX_ENABLE_FLOAT128` - needs policy/probe knob and version-map work.
+- [x] `GLIBCXX_ENABLE_FLOAT128` - GCC 12+ policy/probe knob and version-map
+  work is deferred.
 - [x] `GLIBCXX_ENABLE_FULLY_DYNAMIC_STRING` - needs ABI-affecting private knob.
 - [x] `GLIBCXX_ENABLE_VERBOSE` - needs private verbose-mode knob.
 - [x] `nls` / `_GLIBCXX_USE_NLS` - needs private NLS enablement if message catalogs are built.
@@ -269,14 +273,15 @@ classification. They are not generic raw inventory entries.
 - [x] `GCC_CHECK_ASSEMBLER_HWCAP` - Solaris assembler HWCAP path.
 - [x] `GCC_PROG_GNU_CXXFILT` - Sun/Solaris symbol-version support path.
 - [x] `GLIBCXX_MAYBE_UNDERSCORED_FUNCS` - GCC 13 and older fallback for targets with underscored C symbols.
-- [x] `GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` - Windows native file handle path.
+- [x] `GLIBCXX_CHECK_FILEBUF_NATIVE_HANDLES` - GCC 14+ Windows native file handle path.
 - [x] `GLIBCXX_CHECK_SYSCTL_HW_NCPU` - BSD/macOS CPU-count path.
 - [x] `GLIBCXX_CROSSCONFIG` - non-current cross branches are inactive.
 
 ## Unsupported Feature
 
 - [x] `GCC_CET_FLAGS` - CET library flag policy is not modeled yet.
-- [x] `GLIBCXX_ENABLE_BACKTRACE` - libbacktrace and `<stacktrace>` are not built.
+- [x] `GLIBCXX_ENABLE_BACKTRACE` - GCC 12+ libbacktrace and `<stacktrace>`
+  are not built.
 - [x] `GLIBCXX_ENABLE_DEBUG` - debug library variant is not built.
 - [x] `GLIBCXX_ENABLE_DEBUG_FLAGS` - debug library flags are not exposed.
 - [x] `GLIBCXX_ENABLE_PARALLEL` - parallel mode/libgomp integration is not built.

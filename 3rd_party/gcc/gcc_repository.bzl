@@ -203,6 +203,51 @@ def gcc_repository(gcc_version):
         ":libstdcxx_pstl_config_h",
     ]
 
+    _GCC_9_STRUCTURED_HEADER_GLOBS = [
+        "libstdc++-v3/include/pstl/**",
+    ]
+
+    _GCC_LT_10_STRUCTURED_HEADER_GLOBS = [
+        "libstdc++-v3/include/profile/**",
+    ]
+
+    _GCC_9_CXX17_SOURCES = [
+        "libstdc++-v3/src/c++17/cow-fs_dir.cc",
+        "libstdc++-v3/src/c++17/cow-fs_ops.cc",
+        "libstdc++-v3/src/c++17/cow-fs_path.cc",
+        "libstdc++-v3/src/c++17/fs_dir.cc",
+        "libstdc++-v3/src/c++17/fs_ops.cc",
+        "libstdc++-v3/src/c++17/fs_path.cc",
+        "libstdc++-v3/src/c++17/ostream-inst.cc",
+        ":libstdcxx_cxx17_cow_string_inst_cc",
+        ":libstdcxx_cxx17_cow_string_inst_inc",
+        ":libstdcxx_cxx17_string_inst_cc",
+    ]
+
+    _GCC_8_FILESYSTEM_STD_SOURCES = [
+        "libstdc++-v3/src/filesystem/cow-std-dir.cc",
+        "libstdc++-v3/src/filesystem/cow-std-ops.cc",
+        "libstdc++-v3/src/filesystem/cow-std-path.cc",
+        "libstdc++-v3/src/filesystem/std-dir.cc",
+        "libstdc++-v3/src/filesystem/std-ops.cc",
+        "libstdc++-v3/src/filesystem/std-path.cc",
+    ]
+
+    _GCC_9_LIBRARY_HDRS = [
+        ":libstdcxx_cxx17_string_inst_cc",
+    ]
+
+    _GCC_9_STD_HEADERS = [
+        "libstdc++-v3/include/std/bit",
+        "libstdc++-v3/include/std/execution",
+        "libstdc++-v3/include/std/memory_resource",
+        "libstdc++-v3/include/std/version",
+    ]
+
+    _GCC_9_LIBSUPCXX_PRIVATE_HEADERS = [
+        "libstdc++-v3/libsupc++/eh_term_handler.h",
+    ]
+
     # Keep this export list in sync with the sparse archive roots in
     # 3rd_party/gcc/extension/gcc.bzl. The libstdc++ configure inputs are exported
     # for the audit test; the config/include/libsupc++ entries are the files
@@ -314,7 +359,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/any",
             "libstdc++-v3/include/std/array",
             "libstdc++-v3/include/std/atomic",
-            "libstdc++-v3/include/std/bit",
             "libstdc++-v3/include/std/bitset",
             "libstdc++-v3/include/std/charconv",
             "libstdc++-v3/include/std/chrono",
@@ -322,7 +366,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/complex",
             "libstdc++-v3/include/std/condition_variable",
             "libstdc++-v3/include/std/deque",
-            "libstdc++-v3/include/std/execution",
             "libstdc++-v3/include/std/filesystem",
             "libstdc++-v3/include/std/forward_list",
             "libstdc++-v3/include/std/fstream",
@@ -339,7 +382,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/locale",
             "libstdc++-v3/include/std/map",
             "libstdc++-v3/include/std/memory",
-            "libstdc++-v3/include/std/memory_resource",
             "libstdc++-v3/include/std/mutex",
             "libstdc++-v3/include/std/numeric",
             "libstdc++-v3/include/std/optional",
@@ -368,8 +410,7 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/valarray",
             "libstdc++-v3/include/std/variant",
             "libstdc++-v3/include/std/vector",
-            "libstdc++-v3/include/std/version",
-        ] + (_GCC_10_STD_HEADERS if gcc_version_at_least("10.0.0") else []) + (_GCC_11_STD_HEADERS if gcc_version_at_least("11.0.0") else []) + (_GCC_12_STD_HEADERS if gcc_version_at_least("12.0.0") else []) + (_GCC_13_STD_HEADERS if gcc_version_at_least("13.0.0") else []) + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
+        ] + (_GCC_9_STD_HEADERS if gcc_version_at_least("9.0.0") else []) + (_GCC_10_STD_HEADERS if gcc_version_at_least("10.0.0") else []) + (_GCC_11_STD_HEADERS if gcc_version_at_least("11.0.0") else []) + (_GCC_12_STD_HEADERS if gcc_version_at_least("12.0.0") else []) + (_GCC_13_STD_HEADERS if gcc_version_at_least("13.0.0") else []) + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
     )
 
     native.filegroup(
@@ -429,10 +470,9 @@ def gcc_repository(gcc_version):
                 "libstdc++-v3/include/experimental/**",
                 "libstdc++-v3/include/ext/**",
                 "libstdc++-v3/include/parallel/**",
-                "libstdc++-v3/include/pstl/**",
                 "libstdc++-v3/include/tr1/**",
                 "libstdc++-v3/include/tr2/**",
-            ],
+            ] + (_GCC_9_STRUCTURED_HEADER_GLOBS if gcc_version_at_least("9.0.0") else []) + (_GCC_LT_10_STRUCTURED_HEADER_GLOBS if not gcc_version_at_least("10.0.0") else []),
             exclude = [
                 "**/Makefile.*",
                 "**/.editorconfig",
@@ -540,10 +580,9 @@ def gcc_repository(gcc_version):
         srcs = [
             "libgcc/unwind-pe.h",
             "libstdc++-v3/libsupc++/eh_atomics.h",
-            "libstdc++-v3/libsupc++/eh_term_handler.h",
             "libstdc++-v3/libsupc++/tinfo.h",
             "libstdc++-v3/libsupc++/unwind-cxx.h",
-        ],
+        ] + (_GCC_9_LIBSUPCXX_PRIVATE_HEADERS if gcc_version_at_least("9.0.0") else []),
     )
 
     # cp-demangle.c is pulled from libiberty by libsupc++/Makefile.am; the minimal
@@ -1082,18 +1121,7 @@ def gcc_repository(gcc_version):
 
     native.filegroup(
         name = "libstdcxx_cxx17_sources",
-        srcs = [
-            "libstdc++-v3/src/c++17/cow-fs_dir.cc",
-            "libstdc++-v3/src/c++17/cow-fs_ops.cc",
-            "libstdc++-v3/src/c++17/cow-fs_path.cc",
-            "libstdc++-v3/src/c++17/fs_dir.cc",
-            "libstdc++-v3/src/c++17/fs_ops.cc",
-            "libstdc++-v3/src/c++17/fs_path.cc",
-            "libstdc++-v3/src/c++17/ostream-inst.cc",
-            ":libstdcxx_cxx17_cow_string_inst_cc",
-            ":libstdcxx_cxx17_cow_string_inst_inc",
-            ":libstdcxx_cxx17_string_inst_cc",
-        ] + (_GCC_11_CXX17_SOURCES if gcc_version_at_least("11.0.0") else []) + (_GCC_12_CXX17_SOURCES if gcc_version_at_least("12.0.0") else _GCC_LT_12_CXX17_SOURCES),
+        srcs = (_GCC_9_CXX17_SOURCES if gcc_version_at_least("9.0.0") else []) + (_GCC_11_CXX17_SOURCES if gcc_version_at_least("11.0.0") else []) + (_GCC_12_CXX17_SOURCES if gcc_version_at_least("12.0.0") else (_GCC_LT_12_CXX17_SOURCES if gcc_version_at_least("9.0.0") else [])),
     )
 
     native.filegroup(
@@ -1124,7 +1152,7 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/src/filesystem/dir.cc",
             "libstdc++-v3/src/filesystem/ops.cc",
             "libstdc++-v3/src/filesystem/path.cc",
-        ],
+        ] + (_GCC_8_FILESYSTEM_STD_SOURCES if not gcc_version_at_least("9.0.0") else []),
     )
 
     LIBSTDCXX_LIBRARY_INCLUDES = [
@@ -1145,8 +1173,7 @@ def gcc_repository(gcc_version):
 
     # Shared private headers for the libstdc++ library objects. Public installed
     # headers come through @llvm//runtimes/libstdcxx:build_headers instead.
-    LIBSTDCXX_LIBRARY_HDRS = [
-        ":libstdcxx_cxx17_string_inst_cc",
+    LIBSTDCXX_LIBRARY_HDRS = (_GCC_9_LIBRARY_HDRS if gcc_version_at_least("9.0.0") else []) + [
         ":libsupcxx_headers",
         ":libstdcxx_src_internal_headers",
     ] + (_GCC_LT_13_LIBRARY_HDRS if not gcc_version_at_least("13.0.0") else [])
