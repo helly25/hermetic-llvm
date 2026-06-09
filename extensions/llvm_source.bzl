@@ -38,6 +38,7 @@ _DEFAULT_SOURCE_PATCHES = [
     "//3rd_party/llvm-project/x.x/patches:dagisel-result-tail-sharing.patch",
     "//3rd_party/llvm-project/x.x/patches:sdnode-info-layout.patch",
     "//3rd_party/llvm-project/x.x/patches:clang-diagnostic-description-table.patch",
+    "//3rd_party/llvm-project/x.x/patches:clang-tidy-compact-confusables.patch",
     "//3rd_party/llvm-project/x.x/patches:clang-tidy-compact-check-factories.patch",
     "//3rd_party/llvm-project/x.x/patches:clang-tidy-dynamic-loop-convert-visitors.patch",
     "//3rd_party/llvm-project/x.x/patches:opttable-info-layout.patch",
