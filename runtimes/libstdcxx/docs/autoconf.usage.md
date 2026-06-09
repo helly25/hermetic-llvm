@@ -28,6 +28,8 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_CHECK_S_ISREG_OR_S_IFREG` - regular-file macro probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_WRITEV` - `writev` probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_UCHAR_H` - C11/C++20 uchar probes are modeled; `modeled`.
+- [x] `GLIBCXX_CHECK_INT64_T` - GCC 11 and older `int64_t`
+  typedef-shape probes are modeled; `modeled`.
 - [x] `GLIBCXX_COMPUTE_STDIO_INTEGER_CONSTANTS` - Linux GNU constants are policy-modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_TMPNAM` - `tmpnam` probe is modeled; `modeled`.
 - [x] `GLIBCXX_CHECK_PTHREAD_COND_CLOCKWAIT` - pthread probe is modeled; `modeled`.
@@ -41,6 +43,8 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_CHECK_COMPILER_FEATURES` - compiler feature checks are modeled as build policy; `modeled`.
 - [x] `GLIBCXX_ENABLE_ATOMIC_BUILTINS` - atomic builtin policy is modeled; `modeled`.
 - [x] `GLIBCXX_ENABLE_DECIMAL_FLOAT` - decimal floating-point support is probed; `modeled`.
+- [x] `GLIBCXX_ENABLE_INT128_FLOAT128` - GCC 11 and older int128 support is
+  probed; float128 remains a deferred policy; `modeled`.
 - [x] `GLIBCXX_CHECK_GTHREADS` - gthreads checks are modeled; `modeled`.
 - [x] `GCC_CHECK_TLS` - TLS probe is modeled; `modeled`.
 - [x] `GCC_CHECK_UNWIND_GETIPINFO` - unwind policy is modeled; `modeled`.

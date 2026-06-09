@@ -27,6 +27,8 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_CHECK_GETTIMEOFDAY` - `gettimeofday` probe.
 - [x] `GLIBCXX_CHECK_GET_NPROCS` - GNU `get_nprocs` probe.
 - [x] `GLIBCXX_CHECK_GTHREADS` - gthreads capability checks.
+- [x] `GLIBCXX_CHECK_INT64_T` - GCC 11 and older `int64_t` availability and
+  typedef-shape probes for `streamoff`.
 - [x] `GLIBCXX_CHECK_INIT_PRIORITY` - init-priority attribute probe.
 - [x] `GLIBCXX_CHECK_LFS` - large-file support probe group.
 - [x] `GLIBCXX_CHECK_LINKER_FEATURES` - linker/symver capability policy.
@@ -74,6 +76,8 @@ Status meanings are defined in `AGENTS.md`.
 - [x] `GLIBCXX_ENABLE_EXTERN_TEMPLATE` - extern template policy.
 - [x] `GLIBCXX_ENABLE_FILESYSTEM_TS` - filesystem source policy.
 - [x] `GLIBCXX_ENABLE_HOSTED` - hosted policy.
+- [x] `GLIBCXX_ENABLE_INT128_FLOAT128` - GCC 11 and older int128 probe; the
+  float128 half stays deferred with the existing float128 policy.
 - [x] `GLIBCXX_ENABLE_LIBSTDCXX_DUAL_ABI` - dual ABI policy.
 - [x] `GLIBCXX_ENABLE_LIBSTDCXX_TIME` - time support probes. The Win32
   `Sleep` fallback is classified as inactive for supported Linux GNU targets;
@@ -167,7 +171,7 @@ that are implemented as compile/link probes.
 - [x] `__cxa_thread_atexit`
 - [x] `__cxa_thread_atexit_impl`
 - [x] `_aligned_malloc`
-- [x] `_wfopen` - GCC 12+.
+- [x] `_wfopen` - GCC 11+.
 - [x] `aligned_alloc`
 - [x] `arc4random`
 - [x] `at_quick_exit`

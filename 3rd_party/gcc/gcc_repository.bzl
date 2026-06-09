@@ -122,6 +122,37 @@ def gcc_repository(gcc_version):
         "libstdc++-v3/src/c++11/ios_errcat.cc",
     ]
 
+    _GCC_12_C_COMPATIBILITY_HEADERS = [
+        "libstdc++-v3/include/c_compatibility/stdatomic.h",
+    ]
+
+    _GCC_12_STD_HEADERS = [
+        "libstdc++-v3/include/std/expected",
+        "libstdc++-v3/include/std/spanstream",
+        "libstdc++-v3/include/std/stacktrace",
+    ]
+
+    _GCC_12_CXX11_SOURCES = [
+        ":libstdcxx_cxx11_assert_fail_cc",
+        "libstdc++-v3/src/c++11/cxx11-ios_failure.cc",
+        "libstdc++-v3/src/c++11/future.cc",
+        "libstdc++-v3/src/c++11/system_error.cc",
+    ]
+
+    _GCC_LT_12_CXX11_SOURCES = [
+        ":libstdcxx_cxx11_cxx11_ios_failure_cc",
+        ":libstdcxx_cxx11_future_cc",
+        ":libstdcxx_cxx11_system_error_cc",
+    ]
+
+    _GCC_12_CXX17_SOURCES = [
+        "libstdc++-v3/src/c++17/memory_resource.cc",
+    ]
+
+    _GCC_LT_12_CXX17_SOURCES = [
+        ":libstdcxx_cxx17_memory_resource_cc",
+    ]
+
     # Keep this export list in sync with the sparse archive roots in
     # 3rd_party/gcc/extension/gcc.bzl. The libstdc++ configure inputs are exported
     # for the audit test; the config/include/libsupc++ entries are the files
@@ -245,7 +276,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/coroutine",
             "libstdc++-v3/include/std/deque",
             "libstdc++-v3/include/std/execution",
-            "libstdc++-v3/include/std/expected",
             "libstdc++-v3/include/std/filesystem",
             "libstdc++-v3/include/std/forward_list",
             "libstdc++-v3/include/std/fstream",
@@ -280,10 +310,8 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/shared_mutex",
             "libstdc++-v3/include/std/source_location",
             "libstdc++-v3/include/std/span",
-            "libstdc++-v3/include/std/spanstream",
             "libstdc++-v3/include/std/sstream",
             "libstdc++-v3/include/std/stack",
-            "libstdc++-v3/include/std/stacktrace",
             "libstdc++-v3/include/std/stdexcept",
             "libstdc++-v3/include/std/stop_token",
             "libstdc++-v3/include/std/streambuf",
@@ -302,7 +330,7 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/variant",
             "libstdc++-v3/include/std/vector",
             "libstdc++-v3/include/std/version",
-        ] + (_GCC_13_STD_HEADERS if gcc_version_at_least("13.0.0") else []) + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
+        ] + (_GCC_12_STD_HEADERS if gcc_version_at_least("12.0.0") else []) + (_GCC_13_STD_HEADERS if gcc_version_at_least("13.0.0") else []) + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
     )
 
     native.filegroup(
@@ -343,10 +371,9 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/c_compatibility/complex.h",
             "libstdc++-v3/include/c_compatibility/fenv.h",
             "libstdc++-v3/include/c_compatibility/math.h",
-            "libstdc++-v3/include/c_compatibility/stdatomic.h",
             "libstdc++-v3/include/c_compatibility/stdlib.h",
             "libstdc++-v3/include/c_compatibility/tgmath.h",
-        ] + (_GCC_15_C_COMPATIBILITY_HEADERS if gcc_version_at_least("15.0.0") else []),
+        ] + (_GCC_12_C_COMPATIBILITY_HEADERS if gcc_version_at_least("12.0.0") else []) + (_GCC_15_C_COMPATIBILITY_HEADERS if gcc_version_at_least("15.0.0") else []),
     )
 
     native.filegroup(
@@ -797,6 +824,42 @@ def gcc_repository(gcc_version):
         template = "libstdc++-v3/src/c++11/assert_fail.cc",
     )
 
+    expand_template(
+        name = "libstdcxx_cxx11_future_cc",
+        out = "libstdcxx_generated/c++11/future.cc",
+        substitutions = {
+            "__constinit ": "",
+        },
+        template = "libstdc++-v3/src/c++11/future.cc",
+    )
+
+    expand_template(
+        name = "libstdcxx_cxx11_cxx11_ios_failure_cc",
+        out = "libstdcxx_generated/c++11/cxx11-ios_failure.cc",
+        substitutions = {
+            "__constinit ": "",
+        },
+        template = "libstdc++-v3/src/c++11/cxx11-ios_failure.cc",
+    )
+
+    expand_template(
+        name = "libstdcxx_cxx11_system_error_cc",
+        out = "libstdcxx_generated/c++11/system_error.cc",
+        substitutions = {
+            "__constinit ": "",
+        },
+        template = "libstdc++-v3/src/c++11/system_error.cc",
+    )
+
+    expand_template(
+        name = "libstdcxx_cxx17_memory_resource_cc",
+        out = "libstdcxx_generated/c++17/memory_resource.cc",
+        substitutions = {
+            "__constinit ": "",
+        },
+        template = "libstdc++-v3/src/c++17/memory_resource.cc",
+    )
+
     write_file(
         name = "libstdcxx_gstdint_h",
         out = "libstdcxx_generated/c++11/gstdint.h",
@@ -889,7 +952,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/src/c++11/cow-wstring-io-inst.cc",
             "libstdc++-v3/src/c++11/ctype.cc",
             "libstdc++-v3/src/c++11/cxx11-hash_tr1.cc",
-            "libstdc++-v3/src/c++11/cxx11-ios_failure.cc",
             "libstdc++-v3/src/c++11/cxx11-locale-inst.cc",
             "libstdc++-v3/src/c++11/cxx11-shim_facets.cc",
             "libstdc++-v3/src/c++11/cxx11-stdexcept.cc",
@@ -900,7 +962,6 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/src/c++11/functexcept.cc",
             "libstdc++-v3/src/c++11/functional.cc",
             "libstdc++-v3/src/c++11/futex.cc",
-            "libstdc++-v3/src/c++11/future.cc",
             "libstdc++-v3/src/c++11/hash_c++0x.cc",
             "libstdc++-v3/src/c++11/ios.cc",
             "libstdc++-v3/src/c++11/ios-inst.cc",
@@ -919,16 +980,14 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/src/c++11/streambuf-inst.cc",
             "libstdc++-v3/src/c++11/string-inst.cc",
             "libstdc++-v3/src/c++11/string-io-inst.cc",
-            "libstdc++-v3/src/c++11/system_error.cc",
             "libstdc++-v3/src/c++11/thread.cc",
             "libstdc++-v3/src/c++11/wlocale-inst.cc",
             "libstdc++-v3/src/c++11/wstring-inst.cc",
             "libstdc++-v3/src/c++11/wstring-io-inst.cc",
-            ":libstdcxx_cxx11_assert_fail_cc",
             ":libstdcxx_cxx11_basic_file_cc",
             ":libstdcxx_cxx11_ctype_configure_char_cc",
             ":libstdcxx_cxx11_ctype_members_cc",
-        ] + (_GCC_13_CXX11_SOURCES if gcc_version_at_least("13.0.0") else []) + (_GCC_15_CXX11_SOURCES if gcc_version_at_least("15.0.0") else []),
+        ] + (_GCC_12_CXX11_SOURCES if gcc_version_at_least("12.0.0") else _GCC_LT_12_CXX11_SOURCES) + (_GCC_13_CXX11_SOURCES if gcc_version_at_least("13.0.0") else []) + (_GCC_15_CXX11_SOURCES if gcc_version_at_least("15.0.0") else []),
     )
 
     native.filegroup(
@@ -963,12 +1022,11 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/src/c++17/fs_dir.cc",
             "libstdc++-v3/src/c++17/fs_ops.cc",
             "libstdc++-v3/src/c++17/fs_path.cc",
-            "libstdc++-v3/src/c++17/memory_resource.cc",
             "libstdc++-v3/src/c++17/ostream-inst.cc",
             ":libstdcxx_cxx17_cow_string_inst_cc",
             ":libstdcxx_cxx17_cow_string_inst_inc",
             ":libstdcxx_cxx17_string_inst_cc",
-        ],
+        ] + (_GCC_12_CXX17_SOURCES if gcc_version_at_least("12.0.0") else _GCC_LT_12_CXX17_SOURCES),
     )
 
     native.filegroup(

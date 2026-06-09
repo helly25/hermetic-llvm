@@ -16,7 +16,7 @@ HAVE___CXA_THREAD_ATEXIT_IMPL probe-modeled
 HAVE_ACOSF probe-modeled
 HAVE_ACOSL probe-modeled
 HAVE_ALIGNED_ALLOC probe-modeled
-HAVE_ARC4RANDOM probe-modeled
+HAVE_ARC4RANDOM probe-modeled gcc_ge_12
 HAVE_ASINF probe-modeled
 HAVE_ASINL probe-modeled
 HAVE_AS_SYMVER_DIRECTIVE policy-modeled
@@ -52,7 +52,10 @@ HAVE_FMODL probe-modeled
 HAVE_FREXPF probe-modeled
 HAVE_FREXPL probe-modeled
 HAVE_FWRITE_UNLOCKED probe-modeled gcc_ge_16
-HAVE_GETENTROPY probe-modeled
+HAVE_GETENTROPY probe-modeled gcc_ge_12
+HAVE_INT64_T probe-modeled gcc_lt_12
+HAVE_INT64_T_LONG probe-modeled gcc_lt_12
+HAVE_INT64_T_LONG_LONG probe-modeled gcc_lt_12
 HAVE_GETIPINFO policy-modeled
 HAVE_GETS probe-modeled
 HAVE_HYPOT probe-modeled
@@ -84,7 +87,7 @@ HAVE_MODFL probe-modeled
 HAVE_OBSOLETE_ISINF probe-modeled
 HAVE_OBSOLETE_ISNAN probe-modeled
 HAVE_OPENAT probe-modeled
-HAVE_O_NONBLOCK probe-modeled
+HAVE_O_NONBLOCK probe-modeled gcc_ge_12
 HAVE_POLL probe-modeled
 HAVE_POSIX_MEMALIGN probe-modeled
 HAVE_POSIX_SEMAPHORE probe-modeled gcc_ge_11_lt_16
@@ -106,7 +109,7 @@ HAVE_SLEEP probe-modeled
 HAVE_SOCKATMARK probe-modeled
 HAVE_SQRTF probe-modeled
 HAVE_SQRTL probe-modeled
-HAVE_STACKTRACE unsupported-feature
+HAVE_STACKTRACE unsupported-feature gcc_ge_12
 HAVE_STDBOOL_H not-needed
 HAVE_STRERROR_L probe-modeled
 HAVE_STRERROR_R probe-modeled
@@ -140,7 +143,7 @@ HAVE_WCSTOF probe-modeled
 HAVE_WRITEV probe-modeled
 HAVE__ALIGNED_MALLOC probe-modeled
 HAVE__BOOL not-needed
-HAVE__WFOPEN probe-modeled gcc_ge_12
+HAVE__WFOPEN probe-modeled gcc_ge_11
 HAVE_CC_TLS probe-modeled
 ICONV_CONST intentionally-defaulted
 STRING_WITH_STRINGS not-needed
@@ -195,8 +198,8 @@ _GLIBCXX_USE_C99_MATH_FUNCS probe-modeled gcc_ge_14
 _GLIBCXX_USE_C99_MATH_TR1 probe-modeled
 _GLIBCXX_USE_C99_STDINT probe-modeled gcc_ge_14
 _GLIBCXX_USE_C99_STDINT_TR1 probe-modeled
-_GLIBCXX_USE_CHDIR probe-modeled
-_GLIBCXX_USE_CHMOD probe-modeled
+_GLIBCXX_USE_CHDIR probe-modeled gcc_ge_12
+_GLIBCXX_USE_CHMOD probe-modeled gcc_ge_12
 _GLIBCXX_USE_CLOCK_GETTIME_SYSCALL policy-modeled
 _GLIBCXX_USE_CLOCK_MONOTONIC probe-modeled
 _GLIBCXX_USE_CLOCK_REALTIME probe-modeled
@@ -206,7 +209,8 @@ _GLIBCXX_USE_DEV_RANDOM policy-modeled
 _GLIBCXX_USE_FCHMOD probe-modeled
 _GLIBCXX_USE_FCHMODAT probe-modeled
 _GLIBCXX_USE_FSEEKO_FTELLO probe-modeled gcc_ge_13
-_GLIBCXX_USE_GETCWD probe-modeled
+_GLIBCXX_USE_GETCWD probe-modeled gcc_ge_12
+_GLIBCXX_USE_INT128 probe-modeled gcc_lt_12
 _GLIBCXX_USE_GETTIMEOFDAY probe-modeled
 _GLIBCXX_USE_GET_NPROCS probe-modeled
 _GLIBCXX_USE_GLIBC_STDIO_EXT probe-modeled gcc_ge_16
@@ -214,7 +218,7 @@ _GLIBCXX_USE_INIT_PRIORITY_ATTRIBUTE probe-modeled gcc_ge_13
 _GLIBCXX_USE_LFS probe-modeled
 _GLIBCXX_USE_LONG_LONG policy-modeled
 _GLIBCXX_USE_LSTAT probe-modeled
-_GLIBCXX_USE_MKDIR probe-modeled
+_GLIBCXX_USE_MKDIR probe-modeled gcc_ge_12
 _GLIBCXX_USE_NANOSLEEP probe-modeled
 _GLIBCXX_USE_NLS build-setting-later
 _GLIBCXX_USE_NL_LANGINFO_L probe-modeled gcc_ge_14
@@ -237,8 +241,8 @@ _GLIBCXX_USE_STRUCT_TM_TM_ZONE probe-modeled gcc_ge_15
 _GLIBCXX_USE_ST_MTIM probe-modeled
 _GLIBCXX_USE_SYSCTL_HW_NCPU unsupported-target
 _GLIBCXX_USE_TMPNAM probe-modeled
-_GLIBCXX_USE_UCHAR_C8RTOMB_MBRTOC8_CXX20 probe-modeled
-_GLIBCXX_USE_UCHAR_C8RTOMB_MBRTOC8_FCHAR8_T probe-modeled
+_GLIBCXX_USE_UCHAR_C8RTOMB_MBRTOC8_CXX20 probe-modeled gcc_ge_12
+_GLIBCXX_USE_UCHAR_C8RTOMB_MBRTOC8_FCHAR8_T probe-modeled gcc_ge_12
 _GLIBCXX_USE_UTIME probe-modeled
 _GLIBCXX_USE_UTIMENSAT probe-modeled
 _GLIBCXX_USE_WCHAR_T probe-modeled
