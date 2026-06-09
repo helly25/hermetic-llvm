@@ -143,7 +143,7 @@ HAVE_WCSTOF probe-modeled
 HAVE_WRITEV probe-modeled
 HAVE__ALIGNED_MALLOC probe-modeled
 HAVE__BOOL not-needed
-HAVE__WFOPEN probe-modeled gcc_ge_10
+HAVE__WFOPEN probe-modeled gcc_ge_9
 HAVE_CC_TLS probe-modeled
 ICONV_CONST intentionally-defaulted
 STRING_WITH_STRINGS not-needed
@@ -224,9 +224,9 @@ _GLIBCXX_USE_NLS build-setting-later
 _GLIBCXX_USE_NL_LANGINFO_L probe-modeled gcc_ge_14
 _GLIBCXX_USE_PROC_SELF_STATUS policy-modeled gcc_ge_16
 _GLIBCXX_USE_PTHREADS_NUM_PROCESSORS_NP probe-modeled
-_GLIBCXX_USE_PTHREAD_COND_CLOCKWAIT probe-modeled
-_GLIBCXX_USE_PTHREAD_MUTEX_CLOCKLOCK probe-modeled
-_GLIBCXX_USE_PTHREAD_RWLOCK_CLOCKLOCK probe-modeled
+_GLIBCXX_USE_PTHREAD_COND_CLOCKWAIT probe-modeled gcc_ge_10
+_GLIBCXX_USE_PTHREAD_MUTEX_CLOCKLOCK probe-modeled gcc_ge_10
+_GLIBCXX_USE_PTHREAD_RWLOCK_CLOCKLOCK probe-modeled gcc_ge_10
 _GLIBCXX_USE_PTHREAD_RWLOCK_T probe-modeled
 _GLIBCXX_USE_PTRACE probe-modeled gcc_ge_16
 _GLIBCXX_USE_RANDOM_TR1 policy-modeled
@@ -250,7 +250,7 @@ _GLIBCXX_USE_WIN32_SLEEP policy-modeled gcc_ge_13
 _GLIBCXX_USE__GET_OSFHANDLE unsupported-target gcc_ge_14
 _GLIBCXX_VERBOSE policy-modeled
 _GLIBCXX_X86_RDRAND probe-modeled
-_GLIBCXX_X86_RDSEED probe-modeled
+_GLIBCXX_X86_RDSEED probe-modeled gcc_ge_10
 _GLIBCXX_ZONEINFO_DIR policy-modeled gcc_ge_13
 _GTHREAD_USE_MUTEX_TIMEDLOCK probe-modeled
 __CORRECT_ISO_CPP11_MATH_H_PROTO_FP unsupported-target

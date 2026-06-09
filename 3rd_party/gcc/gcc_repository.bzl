@@ -35,6 +35,12 @@ def gcc_repository(gcc_version):
     )
 
     write_file(
+        name = "gcc_config_toolexeclibdir_m4",
+        out = "gcc_config_generated/toolexeclibdir.m4",
+        content = [],
+    )
+
+    write_file(
         name = "libstdcxx_cxx23_std_cc",
         out = "libstdcxx_generated/src/c++23/std.cc",
         content = [
@@ -174,6 +180,29 @@ def gcc_repository(gcc_version):
         "libstdc++-v3/src/c++17/floating_to_chars.cc",
     ]
 
+    _GCC_10_STD_HEADERS = [
+        "libstdc++-v3/include/std/concepts",
+        "libstdc++-v3/include/std/coroutine",
+        "libstdc++-v3/include/std/numbers",
+        "libstdc++-v3/include/std/ranges",
+        "libstdc++-v3/include/std/span",
+        "libstdc++-v3/include/std/stop_token",
+    ]
+
+    _GCC_10_LIBSUPCXX_HEADERS = [
+        "libstdc++-v3/libsupc++/compare",
+    ]
+
+    _GCC_LT_10_STRUCTURED_HEADER_EXCLUDES = [
+        "libstdc++-v3/include/experimental/bits/fs_path.h",
+        "libstdc++-v3/include/pstl/pstl_config.h",
+    ]
+
+    _GCC_LT_10_STRUCTURED_HEADERS = [
+        ":libstdcxx_experimental_fs_path_h",
+        ":libstdcxx_pstl_config_h",
+    ]
+
     # Keep this export list in sync with the sparse archive roots in
     # 3rd_party/gcc/extension/gcc.bzl. The libstdc++ configure inputs are exported
     # for the audit test; the config/include/libsupc++ entries are the files
@@ -291,9 +320,7 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/chrono",
             "libstdc++-v3/include/std/codecvt",
             "libstdc++-v3/include/std/complex",
-            "libstdc++-v3/include/std/concepts",
             "libstdc++-v3/include/std/condition_variable",
-            "libstdc++-v3/include/std/coroutine",
             "libstdc++-v3/include/std/deque",
             "libstdc++-v3/include/std/execution",
             "libstdc++-v3/include/std/filesystem",
@@ -314,23 +341,19 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/memory",
             "libstdc++-v3/include/std/memory_resource",
             "libstdc++-v3/include/std/mutex",
-            "libstdc++-v3/include/std/numbers",
             "libstdc++-v3/include/std/numeric",
             "libstdc++-v3/include/std/optional",
             "libstdc++-v3/include/std/ostream",
             "libstdc++-v3/include/std/queue",
             "libstdc++-v3/include/std/random",
-            "libstdc++-v3/include/std/ranges",
             "libstdc++-v3/include/std/ratio",
             "libstdc++-v3/include/std/regex",
             "libstdc++-v3/include/std/scoped_allocator",
             "libstdc++-v3/include/std/set",
             "libstdc++-v3/include/std/shared_mutex",
-            "libstdc++-v3/include/std/span",
             "libstdc++-v3/include/std/sstream",
             "libstdc++-v3/include/std/stack",
             "libstdc++-v3/include/std/stdexcept",
-            "libstdc++-v3/include/std/stop_token",
             "libstdc++-v3/include/std/streambuf",
             "libstdc++-v3/include/std/string",
             "libstdc++-v3/include/std/string_view",
@@ -346,7 +369,7 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/include/std/variant",
             "libstdc++-v3/include/std/vector",
             "libstdc++-v3/include/std/version",
-        ] + (_GCC_11_STD_HEADERS if gcc_version_at_least("11.0.0") else []) + (_GCC_12_STD_HEADERS if gcc_version_at_least("12.0.0") else []) + (_GCC_13_STD_HEADERS if gcc_version_at_least("13.0.0") else []) + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
+        ] + (_GCC_10_STD_HEADERS if gcc_version_at_least("10.0.0") else []) + (_GCC_11_STD_HEADERS if gcc_version_at_least("11.0.0") else []) + (_GCC_12_STD_HEADERS if gcc_version_at_least("12.0.0") else []) + (_GCC_13_STD_HEADERS if gcc_version_at_least("13.0.0") else []) + (_GCC_14_STD_HEADERS if gcc_version_at_least("14.0.0") else []) + (_GCC_15_STD_HEADERS if gcc_version_at_least("15.0.0") else []) + (_GCC_16_STD_HEADERS if gcc_version_at_least("16.0.0") else []),
     )
 
     native.filegroup(
@@ -417,8 +440,8 @@ def gcc_repository(gcc_version):
                 "**/*.in",
                 "**/*.tpl",
                 "libstdc++-v3/include/bits/c++config",
-            ],
-        ),
+            ] + (_GCC_LT_10_STRUCTURED_HEADER_EXCLUDES if gcc_version_at_least("9.0.0") and not gcc_version_at_least("10.0.0") else []),
+        ) + (_GCC_LT_10_STRUCTURED_HEADERS if gcc_version_at_least("9.0.0") and not gcc_version_at_least("10.0.0") else []),
     )
 
     # libsupc++ headers and sources follow libstdc++-v3/libsupc++/Makefile.am.
@@ -426,7 +449,6 @@ def gcc_repository(gcc_version):
         name = "libsupcxx_headers",
         srcs = [
             "libstdc++-v3/libsupc++/atomic_lockfree_defines.h",
-            "libstdc++-v3/libsupc++/compare",
             "libstdc++-v3/libsupc++/cxxabi.h",
             "libstdc++-v3/libsupc++/cxxabi_forced.h",
             "libstdc++-v3/libsupc++/cxxabi_init_exception.h",
@@ -439,7 +461,7 @@ def gcc_repository(gcc_version):
             "libstdc++-v3/libsupc++/nested_exception.h",
             "libstdc++-v3/libsupc++/new",
             "libstdc++-v3/libsupc++/typeinfo",
-        ],
+        ] + (_GCC_10_LIBSUPCXX_HEADERS if gcc_version_at_least("10.0.0") else []),
     )
 
     native.filegroup(
@@ -884,6 +906,38 @@ def gcc_repository(gcc_version):
             "#include <stdint.h>",
             "#endif",
         ],
+    )
+
+    # GCC 9 spells these inline definitions without the noexcept that appears on
+    # the earlier declarations. GCC accepts the mismatch, but Clang rejects it.
+    expand_template(
+        name = "libstdcxx_experimental_fs_path_h",
+        out = "libstdcxx_generated/include/experimental/bits/fs_path.h",
+        substitutions = {
+            """  path::begin() const
+  {""": """  path::begin() const noexcept
+  {""",
+            """  path::end() const
+  {""": """  path::end() const noexcept
+  {""",
+        },
+        template = "libstdc++-v3/include/experimental/bits/fs_path.h",
+    )
+
+    # GCC 9's PSTL config defaults to the TBB backend when parallel policies are
+    # not set, even if libstdc++'s c++config selected no TBB backend.
+    expand_template(
+        name = "libstdcxx_pstl_config_h",
+        out = "libstdcxx_generated/include/pstl/pstl_config.h",
+        substitutions = {
+            "#define __PSTL_config_H\n": """#define __PSTL_config_H
+
+#ifndef PSTL_USE_PARALLEL_POLICIES
+#define PSTL_USE_PARALLEL_POLICIES 0
+#endif
+""",
+        },
+        template = "libstdc++-v3/include/pstl/pstl_config.h",
     )
 
     # C++ standard-version source partitions follow libstdc++-v3/src/Makefile.am
@@ -1396,6 +1450,7 @@ def gcc_repository(gcc_version):
             "nested_exception.h": "bits/nested_exception.h",
         },
         root_paths = [
+            "libstdcxx_generated/include",
             "libstdc++-v3/include/std",
             "libstdc++-v3/include/c_global",
             "libstdc++-v3/include/c_compatibility",
