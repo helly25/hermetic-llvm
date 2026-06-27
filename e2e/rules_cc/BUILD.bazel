@@ -507,6 +507,12 @@ sh_test(
 ubsan_cc_binary(
     name = "ubsan_fail",
     srcs = ["ubsan_fail.cc"],
+    # On macOS the UBSan runtime is a dylib; declare it as a dynamic_dep so it is
+    # in runfiles with an @loader_path rpath and loads at run time.
+    dynamic_deps = select({
+        "@platforms//os:macos": ["@llvm//runtimes/compiler-rt:clang_rt.ubsan_standalone.shared"],
+        "//conditions:default": [],
+    }),
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
@@ -737,8 +743,15 @@ exec_test(
 lsan_cc_binary(
     name = "lsan_fail",
     srcs = ["lsan_fail.cc"],
+    # On macOS the LSan runtime is a dylib; declare it as a dynamic_dep so it is
+    # in runfiles with an @loader_path rpath and loads at run time.
+    dynamic_deps = select({
+        "@platforms//os:macos": ["@llvm//runtimes/compiler-rt:clang_rt.lsan.shared"],
+        "//conditions:default": [],
+    }),
     target_compatible_with = select({
         "@platforms//os:linux": [],
+        "@platforms//os:macos": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
 )

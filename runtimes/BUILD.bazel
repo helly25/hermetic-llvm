@@ -285,6 +285,18 @@ copy_to_resource_directory(
             "//runtimes/compiler-rt:clang_rt.asan_static.static": "libclang_rt.asan_static_osx",
         },
         "//conditions:default": {},
+    }) | select({
+        "//config:ubsan_enabled": {
+            # Standalone UBSan is a dylib on Darwin (cxxabi folded in); no static.
+            "//runtimes/compiler-rt:clang_rt.ubsan_standalone.shared": "libclang_rt.ubsan_osx_dynamic",
+        },
+        "//conditions:default": {},
+    }) | select({
+        "//config:lsan_enabled": {
+            # LSan is a dylib on Darwin; no static standalone runtime.
+            "//runtimes/compiler-rt:clang_rt.lsan.shared": "libclang_rt.lsan_osx_dynamic",
+        },
+        "//conditions:default": {},
     }),
     target_compatible_with = ["@platforms//os:macos"],
     target_triple = "darwin",
