@@ -20,3 +20,13 @@ bzl_library(
     srcs = ["filter_builtin_sources.bzl"],
     visibility = ["//visibility:public"],
 )
+
+bzl_library(
+    name = "weak_symbols",
+    srcs = ["weak_symbols.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_skylib//rules:diff_test",
+        "@bazel_skylib//rules:write_file",
+    ],
+)

@@ -170,13 +170,6 @@ alias(
 
 copy_to_resource_directory(
     name = "resource_directory_default",
-    # macOS uses :resource_directory_macos instead: the Darwin runtime naming
-    # differs (libclang_rt.<name>_osx[_dynamic]) and only a subset of runtimes
-    # is supported upstream. See the :resource_directory alias below.
-    target_compatible_with = select({
-        "@platforms//os:macos": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     srcs = select({
         "//platforms/config:none_bpfeb": {},
         "//platforms/config:none_bpfel": {},
@@ -265,6 +258,13 @@ copy_to_resource_directory(
             "//runtimes/compiler-rt:clang_rt.xray_basic.static": "libclang_rt.xray-basic",
         },
         "//conditions:default": {},
+    }),
+    # macOS uses :resource_directory_macos instead: the Darwin runtime naming
+    # differs (libclang_rt.<name>_osx[_dynamic]) and only a subset of runtimes
+    # is supported upstream. See the :resource_directory alias below.
+    target_compatible_with = select({
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],
 )
