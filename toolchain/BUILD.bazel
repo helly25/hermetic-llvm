@@ -154,7 +154,7 @@ cc_args_list(
 cc_args_list(
     name = "resource_dir",
     args = [
-            "//toolchain/args:resource_dir",
+        "//toolchain/args:resource_dir",
     ],
 )
 

@@ -1528,7 +1528,8 @@ cc_runtime_stage0_static_library(
 
 # On Darwin, standalone UBSan ships as a dylib (libclang_rt.ubsan_osx_dynamic.dylib)
 # with no static standalone runtime; the C++ABI parts (ubsan_cxx) are folded into
-# the dylib. See lib/ubsan/CMakeLists.txt (APPLE branch).
+# the dylib.
+# See https://github.com/llvm/llvm-project/blob/main/compiler-rt/lib/ubsan/CMakeLists.txt (APPLE branch).
 cc_runtime_stage0_shared_library(
     name = "ubsan_standalone.shared",
     additional_linker_inputs = select({
