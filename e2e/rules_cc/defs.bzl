@@ -1,13 +1,37 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@with_cfg.bzl", "with_cfg")
 
-ubsan_cc_binary, _ubsan_cc_binary_internal = with_cfg(cc_binary).set(
+# Wrap a with_cfg sanitizer cc_binary so it pulls in its macOS runtime
+# automatically. On macOS the sanitizer runtime is a dylib and must be a
+# dynamic_dep so it lands in runfiles with an @loader_path rpath and loads at
+# run time; Linux links the static runtime, so nothing is added there. Callers
+# never repeat the dynamic_dep per target.
+def _with_macos_sanitizer_runtime(inner_binary, macos_runtime):
+    def _macro(name, dynamic_deps = None, **kwargs):
+        inner_binary(
+            name = name,
+            dynamic_deps = (dynamic_deps or []) + select({
+                "@platforms//os:macos": [macos_runtime],
+                "//conditions:default": [],
+            }),
+            **kwargs
+        )
+
+    return _macro
+
+# buildifier: disable=unused-variable
+_ubsan_cc_binary, _ubsan_cc_binary_internal = with_cfg(cc_binary).set(
     Label("@llvm//config:ubsan"),
     True,
 ).set(
     Label("@llvm//config:host_ubsan"),
     True,
 ).build()
+
+ubsan_cc_binary = _with_macos_sanitizer_runtime(
+    _ubsan_cc_binary,
+    "@llvm//runtimes/compiler-rt:clang_rt.ubsan_standalone.shared",
+)
 
 cfi_cc_binary, _cfi_cc_binary_internal = with_cfg(cc_binary).set(
     Label("@llvm//config:cfi"),
@@ -81,7 +105,8 @@ tsan_cc_binary, _tsan_cc_binary_internal = with_cfg(cc_binary).set(
     True,
 ).build()
 
-asan_cc_binary, _asan_cc_binary_internal = with_cfg(cc_binary).set(
+# buildifier: disable=unused-variable
+_asan_cc_binary, _asan_cc_binary_internal = with_cfg(cc_binary).set(
     Label("@llvm//config:asan"),
     True,
 ).set(
@@ -89,13 +114,24 @@ asan_cc_binary, _asan_cc_binary_internal = with_cfg(cc_binary).set(
     True,
 ).build()
 
-lsan_cc_binary, _lsan_cc_binary_internal = with_cfg(cc_binary).set(
+asan_cc_binary = _with_macos_sanitizer_runtime(
+    _asan_cc_binary,
+    "@llvm//runtimes/compiler-rt:clang_rt.asan.shared",
+)
+
+# buildifier: disable=unused-variable
+_lsan_cc_binary, _lsan_cc_binary_internal = with_cfg(cc_binary).set(
     Label("@llvm//config:lsan"),
     True,
 ).set(
     Label("@llvm//config:host_lsan"),
     True,
 ).build()
+
+lsan_cc_binary = _with_macos_sanitizer_runtime(
+    _lsan_cc_binary,
+    "@llvm//runtimes/compiler-rt:clang_rt.lsan.shared",
+)
 
 xray_cc_binary, _xray_cc_binary_internal = with_cfg(cc_binary).set(
     Label("@llvm//config:xray"),
