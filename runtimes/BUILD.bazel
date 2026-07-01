@@ -64,9 +64,55 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+config_setting(
+    name = "_macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+selects.config_setting_group(
+    name = "_asan_dynamic_runtime_macos",
+    match_all = [
+        "//config:asan_enabled",
+        ":_macos",
+    ],
+)
+
+selects.config_setting_group(
+    name = "_ubsan_dynamic_runtime_macos",
+    match_all = [
+        "//config:ubsan_enabled",
+        ":_macos",
+    ],
+)
+
+selects.config_setting_group(
+    name = "_lsan_dynamic_runtime_macos",
+    match_all = [
+        "//config:lsan_enabled",
+        ":_macos",
+    ],
+)
+
+# On Darwin the sanitizer runtimes are dylibs. Adding an enabled sanitizer's
+# dylib to the dynamic runtime libs makes the toolchain place it in the runfiles
+# of any dynamically-linked target and emit the @loader_path rpath (via the
+# runtime_library_search_directories feature), so it loads at run time without a
+# per-target dynamic_deps. This covers cc_test (and other dynamically-linked
+# rules); statically-linked cc_binary targets still add it via dynamic_deps.
+# Linux links the static runtimes, so nothing is added there; the .shared
+# targets are Darwin-only, hence the macOS gate.
 filegroup(
     name = "dynamic_runtime_lib",
-    srcs = ["//runtimes/cxxstdlib:dynamic_runtime_lib"],
+    srcs = ["//runtimes/cxxstdlib:dynamic_runtime_lib"] + select({
+        ":_asan_dynamic_runtime_macos": ["//runtimes/compiler-rt:clang_rt.asan.shared"],
+        "//conditions:default": [],
+    }) + select({
+        ":_ubsan_dynamic_runtime_macos": ["//runtimes/compiler-rt:clang_rt.ubsan_standalone.shared"],
+        "//conditions:default": [],
+    }) + select({
+        ":_lsan_dynamic_runtime_macos": ["//runtimes/compiler-rt:clang_rt.lsan.shared"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
 )
 
